@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific - Output directories
+processed_videos/
+engaging_clips/
+engaging_clips_with_titles/
+engaging_clips_with_artistic_titles/
+my_custom_output/
+test_output/
+test_final/
+debug_responses/
+
+# Test results
+artistic_test_results/
+artistic_banner_test/
+all_artistic_styles_showcase/
+
+# Temporary files
+*.tmp
+*.log
