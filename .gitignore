@@ -46,6 +46,9 @@ my_custom_output/
 test_output/
 test_final/
 debug_responses/
+archive/
+docs/
+examples/
 
 # Test results
 artistic_test_results/
