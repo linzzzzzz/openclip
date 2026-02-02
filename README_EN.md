@@ -8,8 +8,8 @@ A lightweight automated video processing pipeline that identifies and extracts t
 
 This project orchestrates a complete workflow to:
 
-1. **Download** videos from Bilibili or process local video files
-2. **Extract** subtitles (from Bilibili or generate with Whisper)
+1. **Download** videos from Bilibili/YouTube or process local video files
+2. **Extract** subtitles (from platform or generate with Whisper)
 3. **Split** long videos (>20 minutes) into manageable parts
 4. **Analyze** content using AI to identify engaging moments
 5. **Generate** video clips of the top 5 most engaging moments
@@ -22,8 +22,8 @@ Perfect for content creators who want to extract highlights from long livestream
 
 ## ✨ Features
 
-- **Flexible Input**: Bilibili URLs or local video files
-- **Smart Transcription**: Uses Bilibili subtitles when available, falls back to Whisper
+- **Flexible Input**: Bilibili/YouTube URLs or local video files
+- **Smart Transcription**: Uses platform subtitles when available, falls back to Whisper
 - **Automatic Splitting**: Handles videos of any length by splitting into 20-minute parts
 - **AI Analysis**: Identifies engaging moments based on content, interaction, and entertainment value
 - **Clip Generation**: Extracts top 5 moments as standalone video clips
@@ -72,6 +72,11 @@ export QWEN_API_KEY=your_api_key_here
 **Process a Bilibili video:**
 ```bash
 uv run python video_orchestrator.py "https://www.bilibili.com/video/BV1234567890"
+```
+
+**Process a YouTube video:**
+```bash
+uv run python video_orchestrator.py "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
 **Process a local video:**
@@ -483,13 +488,14 @@ OpenClip is inspired by [AutoClip](https://github.com/zhouxiaoka/autoclip) but t
 
 | Feature | OpenClip | AutoClip |
 |---------|----------|----------|
+| **Code Size** | ~5K lines | ~2M lines (with frontend deps) |
 | **Architecture** | Lightweight CLI tool | Web app (FastAPI + React) |
 | **Dependencies** | Python + FFmpeg | Docker + Redis + PostgreSQL + Celery |
 | **Customization** | Editable prompt templates | Configuration files |
 | **Interface** | Command-line | Web UI + Real-time monitoring |
 | **Deployment** | `uv sync` and go | Docker containerized |
 
-**OpenClip Features:** Lightweight, fast startup, customizable prompts, 10 artistic title styles
+**OpenClip Features:** Lightweight (5K lines), fast startup, customizable prompts, 10 artistic title styles, easy to maintain and extend
 
 Thanks to [AutoClip](https://github.com/zhouxiaoka/autoclip) for their contributions to video automation.
 
@@ -500,6 +506,7 @@ For issues or questions:
 2. Review error messages in console output
 3. Test with a short video first
 4. Open an issue on GitHub
+5. Join our [Discord community](https://discord.gg/KsC4Keaq) for discussions
 
 ---
 

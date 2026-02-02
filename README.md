@@ -8,8 +8,8 @@
 
 本项目编排完整的工作流程：
 
-1. **下载** Bilibili 视频或处理本地视频文件
-2. **提取** 字幕（从 Bilibili 或使用 Whisper 生成）
+1. **下载** Bilibili/YouTube 视频或处理本地视频文件
+2. **提取** 字幕（从平台或使用 Whisper 生成）
 3. **分割** 长视频（>20分钟）为可管理的片段
 4. **分析** 使用 AI 识别精彩时刻
 5. **生成** 前5个最精彩时刻的视频剪辑
@@ -22,8 +22,8 @@
 
 ## ✨ 特性
 
-- **灵活输入**：支持 Bilibili URL 或本地视频文件
-- **智能转录**：优先使用 Bilibili 字幕，回退到 Whisper
+- **灵活输入**：支持 Bilibili/YouTube URL 或本地视频文件
+- **智能转录**：优先使用平台字幕，回退到 Whisper
 - **自动分割**：通过分割为20分钟片段处理任意长度视频
 - **AI 分析**：基于内容、互动和娱乐价值识别精彩时刻
 - **剪辑生成**：提取前5个时刻为独立视频剪辑
@@ -72,6 +72,11 @@ export QWEN_API_KEY=your_api_key_here
 **处理 Bilibili 视频：**
 ```bash
 uv run python video_orchestrator.py "https://www.bilibili.com/video/BV1234567890"
+```
+
+**处理 YouTube 视频：**
+```bash
+uv run python video_orchestrator.py "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
 **处理本地视频：**
@@ -483,13 +488,14 @@ OpenClip 受 [AutoClip](https://github.com/zhouxiaoka/autoclip) 启发，但采�
 
 | 特性 | OpenClip | AutoClip |
 |------|----------|----------|
+| **代码规模** | ~5K 行 | ~2M 行 (含前端依赖) |
 | **架构** | 轻量命令行工具 | Web应用 (FastAPI + React) |
 | **依赖** | Python + FFmpeg | Docker + Redis + PostgreSQL + Celery |
 | **定制性** | 可编辑提示词模板 | 配置文件 |
 | **界面** | 命令行 | Web界面 + 实时监控 |
 | **部署** | `uv sync` 即用 | Docker容器化 |
 
-**OpenClip 特点：** 轻量、快速启动、提示词可定制、10种艺术字幕风格
+**OpenClip 特点：** 轻量（5K行代码）、快速启动、提示词可定制、10种艺术字幕风格、易于维护和二次开发
 
 感谢 [AutoClip](https://github.com/zhouxiaoka/autoclip) 为视频自动化处理做出的贡献。
 
@@ -500,6 +506,7 @@ OpenClip 受 [AutoClip](https://github.com/zhouxiaoka/autoclip) 启发，但采�
 2. 查看控制台输出中的错误消息
 3. 先用短视频测试
 4. 在 GitHub 上提出 issue
+5. 加入我们的 [Discord 社区](https://discord.gg/KsC4Keaq) 讨论交流
 
 ---
 
