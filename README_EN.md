@@ -2,7 +2,7 @@
 
 English | [简体中文](./README.md)
 
-An automated video processing pipeline that identifies and extracts the most engaging moments from long-form videos (especially livestream recordings). Uses AI-powered analysis to find highlights, generates clips, and adds artistic titles.
+A lightweight automated video processing pipeline that identifies and extracts the most engaging moments from long-form videos (especially livestream recordings). Uses AI-powered analysis to find highlights, generates clips, and adds artistic titles.
 
 ## 🎯 What It Does
 
@@ -17,6 +17,8 @@ This project orchestrates a complete workflow to:
 7. **Create** cover images for each clip
 
 Perfect for content creators who want to extract highlights from long livestreams or videos for social media sharing.
+
+> 💡 **How is it different from AutoClip?** See the [comparison section](#-comparison-with-autoclip) to learn about OpenClip's lightweight design philosophy.
 
 ## ✨ Features
 
@@ -474,6 +476,22 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **yt-dlp** - Video downloading
 - **MoviePy** - Video processing
 - **FFmpeg** - Video encoding
+
+## 🔄 Comparison with AutoClip
+
+OpenClip is inspired by [AutoClip](https://github.com/zhouxiaoka/autoclip) but takes a different approach:
+
+| Feature | OpenClip | AutoClip |
+|---------|----------|----------|
+| **Architecture** | Lightweight CLI tool | Web app (FastAPI + React) |
+| **Dependencies** | Python + FFmpeg | Docker + Redis + PostgreSQL + Celery |
+| **Customization** | Editable prompt templates | Configuration files |
+| **Interface** | Command-line | Web UI + Real-time monitoring |
+| **Deployment** | `uv sync` and go | Docker containerized |
+
+**OpenClip Features:** Lightweight, fast startup, customizable prompts, 10 artistic title styles
+
+Thanks to [AutoClip](https://github.com/zhouxiaoka/autoclip) for their contributions to video automation.
 
 ## 📞 Support
 
