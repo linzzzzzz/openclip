@@ -8,8 +8,8 @@ A lightweight automated video processing pipeline that identifies and extracts t
 
 This project orchestrates a complete workflow to:
 
-1. **Download** videos from Bilibili or process local video files
-2. **Extract** subtitles (from Bilibili or generate with Whisper)
+1. **Download** videos from Bilibili/YouTube or process local video files
+2. **Extract** subtitles (from platform or generate with Whisper)
 3. **Split** long videos (>20 minutes) into manageable parts
 4. **Analyze** content using AI to identify engaging moments
 5. **Generate** video clips of the top 5 most engaging moments
@@ -22,8 +22,8 @@ Perfect for content creators who want to extract highlights from long livestream
 
 ## ✨ Features
 
-- **Flexible Input**: Bilibili URLs or local video files
-- **Smart Transcription**: Uses Bilibili subtitles when available, falls back to Whisper
+- **Flexible Input**: Bilibili/YouTube URLs or local video files
+- **Smart Transcription**: Uses platform subtitles when available, falls back to Whisper
 - **Automatic Splitting**: Handles videos of any length by splitting into 20-minute parts
 - **AI Analysis**: Identifies engaging moments based on content, interaction, and entertainment value
 - **Bilingual Support**: Generate output in Chinese or English
@@ -75,9 +75,9 @@ export QWEN_API_KEY=your_api_key_here
 uv run python video_orchestrator.py "https://www.bilibili.com/video/BV1234567890"
 ```
 
-**Process a Bilibili video:**
+**Process a YouTube video:**
 ```bash
-uv run python video_orchestrator.py "https://www.bilibili.com/video/BV1234567890"
+uv run python video_orchestrator.py "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 ```
 
 **Process a local video:**
@@ -93,8 +93,11 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 # Full pipeline with all features
 uv run python video_orchestrator.py "VIDEO_URL_OR_PATH"
 
-# With custom artistic style
-uv run python video_orchestrator.py --artistic-style neon_glow "VIDEO_URL"
+# With custom artistic style for YouTube video
+uv run python video_orchestrator.py --artistic-style neon_glow "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
+# With custom artistic style for Bilibili video
+uv run python video_orchestrator.py --artistic-style neon_glow "https://www.bilibili.com/video/BV1234567890"
 
 # Process local file
 uv run python video_orchestrator.py ~/Videos/livestream.mp4
@@ -106,7 +109,7 @@ uv run python video_orchestrator.py -o my_output "VIDEO_URL"
 ### Transcript Options
 
 ```bash
-# Use Bilibili subtitles (default)
+# Use platform subtitles (default, supports Bilibili and YouTube)
 uv run python video_orchestrator.py "VIDEO_URL"
 
 # Force Whisper transcription
@@ -245,9 +248,10 @@ The project consists of several modular components:
    - Manages workflow and progress
    - Handles command-line interface
 
-2. **bilibili_downloader.py** - Video download
-   - Downloads from Bilibili with automatic cookie handling
-   - Extracts subtitles (AI-generated Chinese preferred)
+2. **Video Download Components** - Video download
+   - **bilibili_downloader.py** - Downloads from Bilibili with automatic cookie handling
+   - **youtube_downloader.py** - Downloads from YouTube with video and subtitles
+   - Extracts subtitles (platform-generated preferred)
    - Supports multiple browsers for authentication
 
 3. **video_splitter.py** - Video splitting

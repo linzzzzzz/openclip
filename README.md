@@ -8,8 +8,8 @@
 
 本项目编排完整的工作流程：
 
-1. **下载** Bilibili 视频或处理本地视频文件
-2. **提取** 字幕（从 Bilibili 或使用 Whisper 生成）
+1. **下载** Bilibili、YouTube 视频或处理本地视频文件
+2. **提取** 字幕（从平台或使用 Whisper 生成）
 3. **分割** 长视频（>20分钟）为可管理的片段
 4. **分析** 使用 AI 识别精彩时刻
 5. **生成** 前5个最精彩时刻的视频剪辑
@@ -22,8 +22,8 @@
 
 ## ✨ 特性
 
-- **灵活输入**：支持 Bilibili URL 或本地视频文件
-- **智能转录**：优先使用 Bilibili 字幕，回退到 Whisper
+- **灵活输入**：支持 Bilibili、YouTube URL 或本地视频文件
+- **智能转录**：优先使用平台字幕，回退到 Whisper
 - **自动分割**：通过分割为20分钟片段处理任意长度视频
 - **AI 分析**：基于内容、互动和娱乐价值识别精彩时刻
 - **剪辑生成**：提取前5个时刻为独立视频剪辑
@@ -74,9 +74,9 @@ export QWEN_API_KEY=your_api_key_here
 uv run python video_orchestrator.py "https://www.bilibili.com/video/BV1234567890"
 ```
 
-**处理 Bilibili 视频：**
+**处理 YouTube 视频：**
 ```bash
-uv run python video_orchestrator.py "https://www.bilibili.com/video/BV1234567890"
+uv run python video_orchestrator.py "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 ```
 
 **处理本地视频：**
@@ -92,8 +92,11 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 # 完整流水线，启用所有功能
 uv run python video_orchestrator.py "VIDEO_URL_OR_PATH"
 
-# 使用自定义艺术风格
-uv run python video_orchestrator.py --artistic-style neon_glow "VIDEO_URL"
+# 使用自定义艺术风格处理 YouTube 视频
+uv run python video_orchestrator.py --artistic-style neon_glow "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
+# 使用自定义艺术风格处理 Bilibili 视频
+uv run python video_orchestrator.py --artistic-style neon_glow "https://www.bilibili.com/video/BV1234567890"
 
 # 处理本地文件
 uv run python video_orchestrator.py ~/Videos/livestream.mp4
@@ -105,7 +108,7 @@ uv run python video_orchestrator.py -o my_output "VIDEO_URL"
 ### 字幕选项
 
 ```bash
-# 使用 Bilibili 字幕（默认）
+# 使用平台字幕（默认，支持 Bilibili 和 YouTube）
 uv run python video_orchestrator.py "VIDEO_URL"
 
 # 强制使用 Whisper 转录
@@ -244,9 +247,10 @@ processed_videos/
    - 管理工作流和进度
    - 处理命令行界面
 
-2. **bilibili_downloader.py** - 视频下载
-   - 使用自动 cookie 处理从 Bilibili 下载
-   - 提取字幕（优先 AI 生成的中文）
+2. **视频下载组件** - 视频下载
+   - **bilibili_downloader.py** - 使用自动 cookie 处理从 Bilibili 下载
+   - **youtube_downloader.py** - 从 YouTube 下载视频和字幕
+   - 提取字幕（优先平台生成的字幕）
    - 支持多个浏览器进行身份验证
 
 3. **video_splitter.py** - 视频分割

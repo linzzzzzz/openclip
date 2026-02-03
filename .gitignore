@@ -49,6 +49,7 @@ debug_responses/
 archive/
 docs/
 examples/
+tests/
 
 # Test results
 artistic_test_results/
