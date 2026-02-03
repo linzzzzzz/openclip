@@ -8,8 +8,8 @@ A lightweight automated video processing pipeline that identifies and extracts t
 
 This project orchestrates a complete workflow to:
 
-1. **Download** videos from Bilibili/YouTube or process local video files
-2. **Extract** subtitles (from platform or generate with Whisper)
+1. **Download** videos from Bilibili or process local video files
+2. **Extract** subtitles (from Bilibili or generate with Whisper)
 3. **Split** long videos (>20 minutes) into manageable parts
 4. **Analyze** content using AI to identify engaging moments
 5. **Generate** video clips of the top 5 most engaging moments
@@ -22,8 +22,8 @@ Perfect for content creators who want to extract highlights from long livestream
 
 ## ✨ Features
 
-- **Flexible Input**: Bilibili/YouTube URLs or local video files
-- **Smart Transcription**: Uses platform subtitles when available, falls back to Whisper
+- **Flexible Input**: Bilibili URLs or local video files
+- **Smart Transcription**: Uses Bilibili subtitles when available, falls back to Whisper
 - **Automatic Splitting**: Handles videos of any length by splitting into 20-minute parts
 - **AI Analysis**: Identifies engaging moments based on content, interaction, and entertainment value
 - **Clip Generation**: Extracts top 5 moments as standalone video clips
@@ -74,9 +74,9 @@ export QWEN_API_KEY=your_api_key_here
 uv run python video_orchestrator.py "https://www.bilibili.com/video/BV1234567890"
 ```
 
-**Process a YouTube video:**
+**Process a Bilibili video:**
 ```bash
-uv run python video_orchestrator.py "https://www.youtube.com/watch?v=VIDEO_ID"
+uv run python video_orchestrator.py "https://www.bilibili.com/video/BV1234567890"
 ```
 
 **Process a local video:**

@@ -8,8 +8,8 @@
 
 本项目编排完整的工作流程：
 
-1. **下载** Bilibili/YouTube 视频或处理本地视频文件
-2. **提取** 字幕（从平台或使用 Whisper 生成）
+1. **下载** Bilibili 视频或处理本地视频文件
+2. **提取** 字幕（从 Bilibili 或使用 Whisper 生成）
 3. **分割** 长视频（>20分钟）为可管理的片段
 4. **分析** 使用 AI 识别精彩时刻
 5. **生成** 前5个最精彩时刻的视频剪辑
@@ -22,8 +22,8 @@
 
 ## ✨ 特性
 
-- **灵活输入**：支持 Bilibili/YouTube URL 或本地视频文件
-- **智能转录**：优先使用平台字幕，回退到 Whisper
+- **灵活输入**：支持 Bilibili URL 或本地视频文件
+- **智能转录**：优先使用 Bilibili 字幕，回退到 Whisper
 - **自动分割**：通过分割为20分钟片段处理任意长度视频
 - **AI 分析**：基于内容、互动和娱乐价值识别精彩时刻
 - **剪辑生成**：提取前5个时刻为独立视频剪辑
@@ -74,9 +74,9 @@ export QWEN_API_KEY=your_api_key_here
 uv run python video_orchestrator.py "https://www.bilibili.com/video/BV1234567890"
 ```
 
-**处理 YouTube 视频：**
+**处理 Bilibili 视频：**
 ```bash
-uv run python video_orchestrator.py "https://www.youtube.com/watch?v=VIDEO_ID"
+uv run python video_orchestrator.py "https://www.bilibili.com/video/BV1234567890"
 ```
 
 **处理本地视频：**
