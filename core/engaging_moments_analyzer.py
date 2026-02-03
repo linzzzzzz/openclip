@@ -19,18 +19,22 @@ logger = logging.getLogger(__name__)
 class EngagingMomentsAnalyzer:
     """Analyzes video transcripts to identify engaging moments using Qwen API"""
     
-    def __init__(self, api_key: Optional[str] = None, use_background: bool = False):
+    def __init__(self, api_key: Optional[str] = None, use_background: bool = False, language: str = "zh", debug: bool = False):
         """
         Initialize the analyzer
         
         Args:
             api_key: Qwen API key (optional, can use env var)
             use_background: Whether to include background information in prompts
+            language: Language for output ("zh" for Chinese, "en" for English)
+            debug: Enable debug mode to export full prompts sent to LLM
         """
         self.qwen_client = QwenAPIClient(api_key)
         self.prompts_dir = Path("prompts")
         self.use_background = use_background
         self.background_content = None
+        self.language = language
+        self.debug = debug
         
         # Load background information if enabled
         if self.use_background:
@@ -51,6 +55,49 @@ class EngagingMomentsAnalyzer:
             logger.error(f"Error loading background information: {e}")
             self.use_background = False
     
+    def _export_debug_prompt(self, prompt_content: str, prompt_type: str, part_name: Optional[str] = None):
+        """
+        Export full prompt content for debugging
+        
+        Args:
+            prompt_content: The full prompt content to export
+            prompt_type: Type of prompt ("part_analysis" or "aggregation")
+            part_name: Name of the video part (for part analysis prompts)
+        """
+        if not self.debug:
+            return
+        
+        try:
+            from datetime import datetime
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # Create debug directory
+            debug_dir = Path("debug_prompts")
+            debug_dir.mkdir(exist_ok=True)
+            
+            # Generate filename
+            if part_name:
+                filename = f"{prompt_type}_{part_name}_{timestamp}.txt"
+            else:
+                filename = f"{prompt_type}_{timestamp}.txt"
+            
+            # Export prompt
+            export_path = debug_dir / filename
+            with open(export_path, 'w', encoding='utf-8') as f:
+                f.write(f"=== DEBUG PROMPT - {prompt_type.upper()} ===\n")
+                f.write(f"Timestamp: {datetime.now().isoformat()}\n")
+                f.write(f"Language: {self.language}\n")
+                if part_name:
+                    f.write(f"Video Part: {part_name}\n")
+                f.write(f"Prompt Length: {len(prompt_content)} characters\n")
+                f.write("=" * 60 + "\n\n")
+                f.write(prompt_content)
+            
+            logger.info(f"🐛 Debug prompt exported: {export_path}")
+            
+        except Exception as e:
+            logger.error(f"Error exporting debug prompt: {e}")
+    
     def load_prompt_template(self, prompt_name: str) -> str:
         """
         Load prompt template from prompts directory
@@ -61,12 +108,29 @@ class EngagingMomentsAnalyzer:
         Returns:
             Content of the prompt file
         """
-        prompt_path = self.prompts_dir / f"{prompt_name}.md"
-        if not prompt_path.exists():
-            raise FileNotFoundError(f"Prompt file not found: {prompt_path}")
+        # Load base prompt template (without language suffix)
+        base_prompt_path = self.prompts_dir / f"{prompt_name}.md"
         
-        with open(prompt_path, 'r', encoding='utf-8') as f:
-            return f.read().strip()
+        if not base_prompt_path.exists():
+            raise FileNotFoundError(f"Base prompt file not found: {base_prompt_path}")
+        
+        with open(base_prompt_path, 'r', encoding='utf-8') as f:
+            prompt_content = f.read().strip()
+        
+        # Load and append language-specific patch
+        language_patch_path = self.prompts_dir / "language_patches" / f"{self.language}.md"
+        
+        if language_patch_path.exists():
+            with open(language_patch_path, 'r', encoding='utf-8') as f:
+                language_patch = f.read().strip()
+            
+            # Append language patch to the base prompt
+            prompt_content += "\n\n" + language_patch
+            logger.info(f"🌐 Language patch loaded for: {self.language}")
+        else:
+            logger.warning(f"Language patch not found: {language_patch_path}")
+        
+        return prompt_content
     
     def parse_srt_file(self, srt_path: str) -> List[Dict[str, Any]]:
         """
@@ -181,6 +245,9 @@ class EngagingMomentsAnalyzer:
         prompt_parts.append("\n\nPlease analyze this transcript and identify engaging moments following the requirements above.")
         
         analysis_prompt = "".join(prompt_parts)
+        
+        # Export debug prompt if enabled
+        self._export_debug_prompt(analysis_prompt, "part_analysis", part_name)
         
         try:
             # Call Qwen API
@@ -470,6 +537,9 @@ Please fix the JSON and return ONLY the valid JSON, no explanations:
         prompt_parts.append("\n\nPlease select and rank the top 5 most engaging moments following the requirements above.")
         
         aggregation_prompt = "".join(prompt_parts)
+        
+        # Export debug prompt if enabled
+        self._export_debug_prompt(aggregation_prompt, "aggregation")
         
         try:
             # Call Qwen API for aggregation

@@ -497,10 +497,10 @@ async def find_existing_download(url: str,
                                output_dir: Path, 
                                progress_callback: Optional[callable] = None) -> Dict[str, Any]:
     """
-    Find existing downloaded video for a URL
+    Find existing downloaded video for a URL (supports Bilibili and YouTube)
     
     Args:
-        url: Bilibili video URL
+        url: Video URL (Bilibili or YouTube)
         output_dir: Base output directory
         progress_callback: Progress callback function
         
@@ -513,11 +513,28 @@ async def find_existing_download(url: str,
     try:
         # Extract video ID from URL to find the dedicated directory
         import re
-        bv_match = re.search(r'BV[a-zA-Z0-9]+', url)
-        if not bv_match:
-            raise Exception("Could not extract video ID from URL")
         
-        video_id = bv_match.group()
+        # Try Bilibili pattern
+        bv_match = re.search(r'BV[a-zA-Z0-9]+', url)
+        if bv_match:
+            video_id = bv_match.group()
+        else:
+            # Try YouTube patterns
+            yt_patterns = [
+                r'youtube\.com/watch\?v=([\w-]+)',
+                r'youtu\.be/([\w-]+)',
+                r'youtube\.com/shorts/([\w-]+)',
+                r'youtube\.com/embed/([\w-]+)',
+            ]
+            video_id = None
+            for pattern in yt_patterns:
+                match = re.search(pattern, url)
+                if match:
+                    video_id = match.group(1)
+                    break
+            
+            if not video_id:
+                raise Exception("Could not extract video ID from URL")
         
         # Look for dedicated directory in downloads
         downloads_dir = output_dir / "downloads"

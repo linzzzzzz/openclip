@@ -5,7 +5,7 @@ This package contains all the core functionality for video processing,
 analysis, and clip generation.
 """
 
-from .bilibili_downloader import ImprovedBilibiliDownloader, DownloadProcessor
+from .downloaders import ImprovedBilibiliDownloader, DownloadProcessor, VideoDownloader, YouTubeDownloader
 from .video_splitter import VideoSplitter
 from .transcript_generation_whisper import TranscriptProcessor
 from .engaging_moments_analyzer import EngagingMomentsAnalyzer
@@ -26,6 +26,8 @@ from .video_utils import (
 __all__ = [
     'ImprovedBilibiliDownloader',
     'DownloadProcessor',
+    'VideoDownloader',
+    'YouTubeDownloader',
     'VideoSplitter',
     'TranscriptProcessor',
     'EngagingMomentsAnalyzer',

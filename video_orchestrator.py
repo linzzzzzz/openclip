@@ -15,7 +15,7 @@ from datetime import datetime
 import os
 
 # Import our components from core package
-from core.bilibili_downloader import ImprovedBilibiliDownloader, DownloadProcessor
+from core.downloaders import VideoDownloader, DownloadProcessor
 from core.video_splitter import VideoSplitter
 from core.transcript_generation_whisper import TranscriptProcessor
 from core.engaging_moments_analyzer import EngagingMomentsAnalyzer
@@ -53,7 +53,9 @@ class VideoOrchestrator:
                  add_titles: bool = True,
                  artistic_style: str = "crystal_ice",
                  use_background: bool = False,
-                 generate_cover: bool = True):
+                 generate_cover: bool = True,
+                 language: str = "zh",
+                 debug: bool = False):
         """
         Initialize the video orchestrator
         
@@ -68,12 +70,17 @@ class VideoOrchestrator:
             add_titles: Whether to add artistic titles to clips
             artistic_style: Style for artistic titles (crystal_ice, gradient_3d, neon_glow, etc.)
             use_background: Whether to include background information in analysis prompts
+            generate_cover: Whether to generate cover images
+            language: Language for output ("zh" for Chinese, "en" for English)
+            debug: Enable debug mode to export full prompts sent to LLM
         """
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
+        self.language = language
+        self.debug = debug
         
         # Initialize processing components
-        self.downloader = ImprovedBilibiliDownloader(
+        self.downloader = VideoDownloader(
             output_dir=str(self.output_dir / "downloads"),
             browser=browser
         )
@@ -86,8 +93,13 @@ class VideoOrchestrator:
         self.engaging_moments_analyzer = None
         if not skip_analysis and qwen_api_key:
             try:
-                self.engaging_moments_analyzer = EngagingMomentsAnalyzer(qwen_api_key, use_background=use_background)
-                logger.info(f"🧠 Engaging moments analysis: enabled (background: {'yes' if use_background else 'no'})")
+                self.engaging_moments_analyzer = EngagingMomentsAnalyzer(
+                    qwen_api_key, 
+                    use_background=use_background,
+                    language=language,
+                    debug=self.debug
+                )
+                logger.info(f"🧠 Engaging moments analysis: enabled (language: {language}, background: {'yes' if use_background else 'no'})")
             except ValueError as e:
                 logger.warning(f"🔑 Engaging moments analysis disabled: {e}")
         elif skip_analysis:
@@ -143,8 +155,8 @@ class VideoOrchestrator:
         Complete video processing pipeline
         
         Args:
-            source: Bilibili video URL or local video file path
-            force_whisper: Force transcript generation via Whisper (ignore bilibili subtitles)
+            source: Video URL (Bilibili/YouTube) or local video file path
+            force_whisper: Force transcript generation via Whisper (ignore platform subtitles)
             custom_filename: Custom filename template
             skip_download: Skip video download (use existing downloaded video)
             progress_callback: Progress callback function
@@ -585,12 +597,17 @@ async def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Basic processing (use bilibili subtitles if available)
+  # Basic processing (use platform subtitles if available)
   python video_orchestrator.py "https://www.bilibili.com/video/BV1wT6GBBEPp"
+  python video_orchestrator.py "https://www.youtube.com/watch?v=5MWT_doo68k"
   
   # Full pipeline with engaging moments, clips, and titles (set QWEN_API_KEY)
   export QWEN_API_KEY=your_api_key
   python video_orchestrator.py "https://www.bilibili.com/video/BV1234567890"
+  python video_orchestrator.py "https://youtu.be/dQw4w9WgXcQ"
+  
+  # With English output
+  python video_orchestrator.py --language en "https://www.youtube.com/watch?v=5MWT_doo68k"
   
   # With background information (streamer names/nicknames) for better analysis
   python video_orchestrator.py --use-background "https://www.bilibili.com/video/BV1ut6JBTEVK"
@@ -610,8 +627,9 @@ Examples:
   # Skip download and use existing video
   python video_orchestrator.py --skip-download "https://www.bilibili.com/video/BV1ut6JBTEVK"
   
-  # Force Whisper transcript generation
+  # Force Whisper transcript generation (ignore platform subtitles)
   python video_orchestrator.py --force-whisper "https://www.bilibili.com/video/BV1234567890"
+  python video_orchestrator.py --force-whisper "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
   
   # Custom max duration and whisper model
   python video_orchestrator.py --max-duration 15 --whisper-model small "https://www.bilibili.com/video/BV1234567890"
@@ -626,7 +644,7 @@ Note: Set QWEN_API_KEY environment variable to enable engaging moments analysis,
         """
     )
     
-    parser.add_argument('source', help='Bilibili video URL or local video file path')
+    parser.add_argument('source', help='Video URL (Bilibili/YouTube) or local video file path')
     parser.add_argument('-o', '--output', default='processed_videos',
                        help='Output directory (default: processed_videos)')
     parser.add_argument('--max-duration', type=float, default=20.0,
@@ -638,7 +656,7 @@ Note: Set QWEN_API_KEY environment variable to enable engaging moments analysis,
                        choices=['chrome', 'firefox', 'edge', 'safari'],
                        help='Browser for cookie extraction (default: firefox)')
     parser.add_argument('--force-whisper', action='store_true',
-                       help='Force transcript generation via Whisper (ignore bilibili subtitles)')
+                       help='Force transcript generation via Whisper (ignore platform subtitles)')
     parser.add_argument('--skip-download', action='store_true',
                        help='Skip video download and use existing downloaded video')
     parser.add_argument('--skip-analysis', action='store_true',
@@ -655,10 +673,15 @@ Note: Set QWEN_API_KEY environment variable to enable engaging moments analysis,
                        choices=['gradient_3d', 'neon_glow', 'metallic_gold', 'rainbow_3d', 'crystal_ice',
                                'fire_flame', 'metallic_silver', 'glowing_plasma', 'stone_carved', 'glass_transparent'],
                        help='Artistic style for titles (default: crystal_ice)')
+    parser.add_argument('--language', default='zh',
+                       choices=['zh', 'en'],
+                       help='Language for output (zh: Chinese, en: English, default: zh)')
     parser.add_argument('-f', '--filename',
                        help='Custom filename template')
     parser.add_argument('-v', '--verbose', action='store_true',
                        help='Enable verbose logging')
+    parser.add_argument('--debug', action='store_true',
+                       help='Enable debug mode to export full prompts sent to LLM')
     
     args = parser.parse_args()
     
@@ -680,7 +703,9 @@ Note: Set QWEN_API_KEY environment variable to enable engaging moments analysis,
         add_titles=not args.no_titles,
         artistic_style=args.artistic_style,
         use_background=args.use_background,
-        generate_cover=not args.no_cover
+        generate_cover=not args.no_cover,
+        language=args.language,
+        debug=args.debug
     )
     
     def progress_callback(status: str, progress: float):

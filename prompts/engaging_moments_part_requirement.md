@@ -7,10 +7,10 @@ Analyze the provided video transcript and identify potential interesting and eng
 
 ### Content Guidelines
 - Create **attractive and engaging** titles for each moment (no emojis, punctuation allowed)
-- Titles should be in Chinese and avoid sensitive, negative, hate, or offensive words (e.g., no 复仇 in title)
+- Titles should avoid sensitive, negative, hate, or offensive words
 - Co-hosting segments and interactive moments are usually most engaging
-- 八卦 moments are usually engaging
-- Include relevant transcript excerpts in Chinese
+- Gossip moments are usually engaging
+- Include relevant transcript excerpts
 - Provide clear explanations for why each moment is engaging
 
 ### Duration Constraints
@@ -59,13 +59,13 @@ Return your response as a JSON object following this exact structure:
 ## Field Specifications
 
 ### Required Fields for Each Moment:
-- **title**: Compelling Chinese title without emojis
+- **title**: Compelling title without emojis
 - **start_time**: Simple time format (HH:MM:SS or MM:SS) - NOT SRT format with milliseconds
 - **end_time**: Simple time format (HH:MM:SS or MM:SS) - NOT SRT format with milliseconds
 - **duration_seconds**: Integer duration in seconds
 - **transcript**: Relevant transcript excerpt from the moment
 - **engagement_details**: Object with "engagement_level" ("high", "medium", "low")
-- **why_engaging**: Chinese explanation of what makes this moment compelling. Must be shorter than 100 characters.
+- **why_engaging**: Explanation of what makes this moment compelling.
 - **tags**: Array of relevant tags from the approved list
 
 ### Engagement Level Guidelines:

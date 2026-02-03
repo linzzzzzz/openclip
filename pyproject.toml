@@ -7,6 +7,6 @@ requires-python = ">=3.11"
 dependencies = [
     "moviepy>=1.0.3",
     "imageio-ffmpeg>=0.4.0",
-    "yt-dlp>=2025.1.1",
+    "yt-dlp @ git+https://github.com/yt-dlp/yt-dlp.git@master",
     "requests>=2.31.0",
 ]

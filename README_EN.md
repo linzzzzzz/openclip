@@ -26,6 +26,7 @@ Perfect for content creators who want to extract highlights from long livestream
 - **Smart Transcription**: Uses Bilibili subtitles when available, falls back to Whisper
 - **Automatic Splitting**: Handles videos of any length by splitting into 20-minute parts
 - **AI Analysis**: Identifies engaging moments based on content, interaction, and entertainment value
+- **Bilingual Support**: Generate output in Chinese or English
 - **Clip Generation**: Extracts top 5 moments as standalone video clips
 - **Artistic Titles**: 10 professional title styles (fire, neon, crystal, metallic, etc.)
 - **Cover Images**: Auto-generates styled cover images for each clip
@@ -132,6 +133,9 @@ uv run python video_orchestrator.py --max-duration 15 "VIDEO_URL"
 ```bash
 # Include background information (streamer names, context)
 uv run python video_orchestrator.py --use-background "VIDEO_URL"
+
+# Use English output (default is Chinese)
+uv run python video_orchestrator.py --language en "VIDEO_URL"
 
 # Skip analysis (use existing analysis file)
 uv run python video_orchestrator.py --skip-analysis "VIDEO_URL"

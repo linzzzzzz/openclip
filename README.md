@@ -133,6 +133,9 @@ uv run python video_orchestrator.py --max-duration 15 "VIDEO_URL"
 # 包含背景信息（主播名称、上下文）
 uv run python video_orchestrator.py --use-background "VIDEO_URL"
 
+# 使用英文输出（默认为中文）
+uv run python video_orchestrator.py --language en "VIDEO_URL"
+
 # 跳过分析（使用现有分析文件）
 uv run python video_orchestrator.py --skip-analysis "VIDEO_URL"
 

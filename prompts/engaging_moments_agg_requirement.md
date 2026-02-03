@@ -81,7 +81,7 @@ Return your response as a JSON object following this exact structure:
   - **duration**: Integer duration in seconds
 - **transcript**: Original transcript excerpt
 - **engagement_details**: Object with "engagement_level" ("high", "medium", "low")
-- **why_engaging**: Detailed Chinese explanation of appeal
+- **why_engaging**: Detailed explanation of appeal
 - **tags**: Array of relevant engagement tags
 
 ### Analysis Summary Fields:
