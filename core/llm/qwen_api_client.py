@@ -8,6 +8,8 @@ from typing import Dict, List, Optional, Any
 import os
 from dataclasses import dataclass
 
+from core.config import LLM_CONFIG, API_KEY_ENV_VARS
+
 
 @dataclass
 class QwenMessage:
@@ -19,19 +21,19 @@ class QwenMessage:
 class QwenAPIClient:
     """Client for interacting with Qwen API"""
     
-    def __init__(self, api_key: Optional[str] = None, base_url: str = "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation"):
+    def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None):
         """
         Initialize Qwen API client
         
         Args:
             api_key: Your Qwen API key (can also be set via QWEN_API_KEY env var)
-            base_url: Base URL for Qwen API
+            base_url: Base URL for Qwen API (optional, uses config value if not provided)
         """
-        self.api_key = api_key or os.getenv("QWEN_API_KEY")
-        self.base_url = base_url
+        self.api_key = api_key or os.getenv(API_KEY_ENV_VARS["qwen"])
+        self.base_url = base_url or LLM_CONFIG["qwen"]["base_url"]
         
         if not self.api_key:
-            raise ValueError("API key is required. Set QWEN_API_KEY environment variable or pass api_key parameter.")
+            raise ValueError(f"API key is required. Set {API_KEY_ENV_VARS['qwen']} environment variable or pass api_key parameter.")
     
     def _make_request(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Make HTTP request to Qwen API"""
@@ -50,11 +52,11 @@ class QwenAPIClient:
     def chat_completion(
         self,
         messages: List[QwenMessage],
-        model: str = "qwen-turbo",
-        max_tokens: int = 8192,
-        temperature: float = 0.7,
-        top_p: float = 0.8,
-        stream: bool = False
+        model: Optional[str] = None,
+        max_tokens: Optional[int] = None,
+        temperature: Optional[float] = None,
+        top_p: Optional[float] = None,
+        stream: Optional[bool] = None
     ) -> Dict[str, Any]:
         """
         Generate chat completion using Qwen API
@@ -70,6 +72,13 @@ class QwenAPIClient:
         Returns:
             API response dictionary
         """
+        # Use default values from config if not provided
+        model = model or LLM_CONFIG["qwen"]["default_model"]
+        max_tokens = max_tokens or LLM_CONFIG["qwen"]["default_params"]["max_tokens"]
+        temperature = temperature or LLM_CONFIG["qwen"]["default_params"]["temperature"]
+        top_p = top_p or LLM_CONFIG["qwen"]["default_params"]["top_p"]
+        stream = stream if stream is not None else LLM_CONFIG["qwen"]["default_params"]["stream"]
+        
         payload = {
             "model": model,
             "input": {
@@ -85,17 +94,20 @@ class QwenAPIClient:
         
         return self._make_request(payload)
     
-    def simple_chat(self, prompt: str, model: str = "qwen-turbo") -> str:
+    def simple_chat(self, prompt: str, model: Optional[str] = None) -> str:
         """
         Simple chat interface - send a prompt and get response
         
         Args:
             prompt: User prompt/question
-            model: Model to use
+            model: Model to use (optional, uses config value if not provided)
             
         Returns:
             Generated response text
         """
+        # Use default model from config if not provided
+        model = model or LLM_CONFIG["qwen"]["default_model"]
+        
         messages = [QwenMessage(role="user", content=prompt)]
         response = self.chat_completion(messages, model=model)
         
@@ -108,7 +120,7 @@ class QwenAPIClient:
         self,
         messages: List[QwenMessage],
         system_prompt: Optional[str] = None,
-        model: str = "qwen-turbo"
+        model: Optional[str] = None
     ) -> str:
         """
         Multi-turn conversation chat
@@ -116,11 +128,14 @@ class QwenAPIClient:
         Args:
             messages: List of conversation messages
             system_prompt: Optional system prompt to set context
-            model: Model to use
+            model: Model to use (optional, uses config value if not provided)
             
         Returns:
             Generated response text
         """
+        # Use default model from config if not provided
+        model = model or LLM_CONFIG["qwen"]["default_model"]
+        
         conversation = []
         
         if system_prompt:

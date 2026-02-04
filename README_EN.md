@@ -45,9 +45,13 @@ Perfect for content creators who want to extract highlights from long livestream
 
 ### Optional
 
-- **Qwen API Key** - Required for AI analysis and clip generation
-  - Get your key from [Alibaba Cloud](https://dashscope.aliyun.com/)
-  - Set as environment variable: `export QWEN_API_KEY=your_key_here`
+- **LLM API Key** - Required for AI analysis and clip generation (choose one)
+  - **Qwen API Key**
+    - Get your key from [Alibaba Cloud](https://dashscope.aliyun.com/)
+    - Set as environment variable: `export QWEN_API_KEY=your_key_here`
+  - **OpenRouter API Key**
+    - Get your key from [OpenRouter](https://openrouter.ai/)
+    - Set as environment variable: `export OPENROUTER_API_KEY=your_key_here`
 
 ## 🚀 Quick Start
 
@@ -64,8 +68,14 @@ uv sync
 
 ### 2. Set API Key (for AI features)
 
+**Using Qwen:**
 ```bash
 export QWEN_API_KEY=your_api_key_here
+```
+
+**Using OpenRouter:**
+```bash
+export OPENROUTER_API_KEY=your_api_key_here
 ```
 
 ### 3. Run the Pipeline
@@ -145,6 +155,9 @@ uv run python video_orchestrator.py --skip-analysis "VIDEO_URL"
 
 # Analysis only (no clips or titles)
 uv run python video_orchestrator.py --no-clips --no-titles "VIDEO_URL"
+
+# Use OpenRouter as LLM provider (default is Qwen)
+uv run python video_orchestrator.py --llm-provider openrouter "VIDEO_URL"
 ```
 
 ### Clip Generation
@@ -265,7 +278,7 @@ The project consists of several modular components:
    - Multiple model sizes available
 
 5. **engaging_moments_analyzer.py** - AI analysis
-   - Analyzes transcripts with Qwen API
+   - Analyzes transcripts with LLM API (supports Qwen and OpenRouter)
    - Identifies engaging moments
    - Aggregates top moments across parts
 
@@ -362,8 +375,11 @@ Detailed documentation available in `docs/`:
 
 **Solution**:
 ```bash
-# Check API key
+# Check Qwen API key
 echo $QWEN_API_KEY
+
+# Or check OpenRouter API key
+echo $OPENROUTER_API_KEY
 
 # Verify analysis file exists
 ls processed_videos/splits/*/top_engaging_moments.json

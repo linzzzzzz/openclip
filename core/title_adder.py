@@ -461,7 +461,6 @@ class TitleAdder:
                 data = json.load(f)
             
             logger.info("🎨 Adding artistic titles to clips")
-            logger.info(f"📊 Video: {data['analysis_info']['video_title']}")
             logger.info(f"🎨 Style: {artistic_style}")
             logger.info(f"📁 Output: {self.output_dir}")
             
@@ -608,7 +607,6 @@ class TitleAdder:
         
         with open(readme_path, 'w', encoding='utf-8') as f:
             f.write(f"# 🎬 Engaging Clips with Artistic Titles\n\n")
-            f.write(f"**Video**: {data['analysis_info']['video_title']}\n")
             f.write(f"**Analysis Date**: {data['analysis_info']['analysis_date']}\n")
             f.write(f"**Artistic Style**: {artistic_style}\n")
             f.write(f"**Total Clips**: {len(processed_clips)}\n\n")

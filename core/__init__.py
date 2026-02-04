@@ -9,7 +9,8 @@ from .downloaders import ImprovedBilibiliDownloader, DownloadProcessor, VideoDow
 from .video_splitter import VideoSplitter
 from .transcript_generation_whisper import TranscriptProcessor
 from .engaging_moments_analyzer import EngagingMomentsAnalyzer
-from .qwen_api_client import QwenAPIClient
+from .llm.qwen_api_client import QwenAPIClient
+from .llm.openrouter_api_client import OpenRouterAPIClient
 from .clip_generator import ClipGenerator
 from .title_adder import TitleAdder
 from .cover_image_generator import CoverImageGenerator
@@ -32,6 +33,7 @@ __all__ = [
     'TranscriptProcessor',
     'EngagingMomentsAnalyzer',
     'QwenAPIClient',
+    'OpenRouterAPIClient',
     'ClipGenerator',
     'TitleAdder',
     'CoverImageGenerator',

@@ -47,7 +47,6 @@ class ClipGenerator:
             video_dir = Path(video_dir)
             
             logger.info("🎬 Generating clips from Top Engaging Moments")
-            logger.info(f"📊 Video: {data['analysis_info']['video_title']}")
             logger.info(f"📁 Output: {self.output_dir}")
             
             clips_info = []
@@ -204,7 +203,6 @@ class ClipGenerator:
         
         with open(summary_path, 'w', encoding='utf-8') as f:
             f.write("# 🔥 Top Engaging Moments - Video Clips\n\n")
-            f.write(f"**Video**: {data['analysis_info']['video_title']}\n")
             f.write(f"**Analysis Date**: {data['analysis_info']['analysis_date']}\n")
             f.write(f"**Total Clips**: {len(clips_info)}\n\n")
             

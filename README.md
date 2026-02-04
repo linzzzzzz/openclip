@@ -44,9 +44,13 @@
 
 ### 可选
 
-- **Qwen API Key** - AI 分析和剪辑生成所需
-  - 从[阿里云](https://dashscope.aliyun.com/)获取密钥
-  - 设置为环境变量：`export QWEN_API_KEY=your_key_here`
+- **LLM API Key** - AI 分析和剪辑生成所需（选择其一）
+  - **Qwen API Key**
+    - 从[阿里云](https://dashscope.aliyun.com/)获取密钥
+    - 设置为环境变量：`export QWEN_API_KEY=your_key_here`
+  - **OpenRouter API Key**
+    - 从[OpenRouter](https://openrouter.ai/)获取密钥
+    - 设置为环境变量：`export OPENROUTER_API_KEY=your_key_here`
 
 ## 🚀 快速开始
 
@@ -63,8 +67,14 @@ uv sync
 
 ### 2. 设置 API 密钥（用于 AI 功能）
 
+**使用 Qwen：**
 ```bash
 export QWEN_API_KEY=your_api_key_here
+```
+
+**使用 OpenRouter：**
+```bash
+export OPENROUTER_API_KEY=your_api_key_here
 ```
 
 ### 3. 运行流水线
@@ -144,6 +154,9 @@ uv run python video_orchestrator.py --skip-analysis "VIDEO_URL"
 
 # 仅分析（不生成剪辑或字幕）
 uv run python video_orchestrator.py --no-clips --no-titles "VIDEO_URL"
+
+# 使用 OpenRouter 作为 LLM 提供商（默认为 Qwen）
+uv run python video_orchestrator.py --llm-provider openrouter "VIDEO_URL"
 ```
 
 ### 剪辑生成
@@ -264,7 +277,7 @@ processed_videos/
    - 多种模型大小可选
 
 5. **engaging_moments_analyzer.py** - AI 分析
-   - 使用 Qwen API 分析转录
+   - 使用 LLM API 分析转录（支持 Qwen 和 OpenRouter）
    - 识别精彩时刻
    - 跨片段汇总顶级时刻
 
@@ -361,8 +374,11 @@ uv run python video_orchestrator.py --use-background "VIDEO_URL"
 
 **解决方案**：
 ```bash
-# 检查 API 密钥
+# 检查 Qwen API 密钥
 echo $QWEN_API_KEY
+
+# 或检查 OpenRouter API 密钥
+echo $OPENROUTER_API_KEY
 
 # 验证分析文件是否存在
 ls processed_videos/splits/*/top_engaging_moments.json

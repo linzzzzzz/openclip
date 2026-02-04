@@ -96,7 +96,7 @@ class ResultsFormatter:
                 if analysis.get('top_moments') and analysis['top_moments'].get('top_engaging_moments'):
                     top_moments = analysis['top_moments']['top_engaging_moments']
                     print(f"   Top engaging moments found: {len(top_moments)}")
-                    for moment in top_moments[:3]:  # Show top 3
+                    for moment in top_moments:  # Show all
                         print(f"     • {moment.get('title', 'No title')} ({moment.get('duration_seconds', 0)}s)")
             else:
                 print(f"\n🧠 ENGAGING MOMENTS ANALYSIS: Failed - {analysis['error']}")
@@ -110,7 +110,7 @@ class ResultsFormatter:
                 print(f"   Output directory: {clip_gen.get('output_dir', 'N/A')}")
                 if clip_gen.get('clips_info'):
                     print(f"   Generated clips:")
-                    for clip in clip_gen['clips_info'][:3]:  # Show first 3
+                    for clip in clip_gen['clips_info']:
                         print(f"     • {clip.get('filename', 'N/A')}")
             else:
                 error = clip_gen.get('error', 'Unknown error')
@@ -126,7 +126,7 @@ class ResultsFormatter:
                 print(f"   Output directory: {title_add.get('output_dir', 'N/A')}")
                 if title_add.get('processed_clips'):
                     print(f"   Processed clips:")
-                    for clip in title_add['processed_clips'][:3]:  # Show first 3
+                    for clip in title_add['processed_clips']:
                         print(f"     • {clip.get('filename', 'N/A')}")
             else:
                 error = title_add.get('error', 'Unknown error')
@@ -141,7 +141,7 @@ class ResultsFormatter:
                 print(f"   Output directory: {cover_gen.get('output_dir', 'N/A')}")
                 if cover_gen.get('covers'):
                     print(f"   Generated covers:")
-                    for cover in cover_gen['covers'][:5]:  # Show first 5
+                    for cover in cover_gen['covers']:
                         print(f"     • [{cover.get('rank')}] {cover.get('filename', 'N/A')}")
             else:
                 error = cover_gen.get('error', 'Unknown error')

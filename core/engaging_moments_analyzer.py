@@ -11,30 +11,41 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 import re
 
-from core.qwen_api_client import QwenAPIClient, QwenMessage
+from core.llm.qwen_api_client import QwenAPIClient, QwenMessage
 
 logger = logging.getLogger(__name__)
 
 
 class EngagingMomentsAnalyzer:
-    """Analyzes video transcripts to identify engaging moments using Qwen API"""
+    """Analyzes video transcripts to identify engaging moments using LLM APIs"""
     
-    def __init__(self, api_key: Optional[str] = None, use_background: bool = False, language: str = "zh", debug: bool = False):
+    def __init__(self, api_key: Optional[str] = None, provider: str = "qwen", use_background: bool = False, language: str = "zh", debug: bool = False):
         """
         Initialize the analyzer
         
         Args:
-            api_key: Qwen API key (optional, can use env var)
+            api_key: API key for the selected provider (optional, can use env var)
+            provider: LLM provider to use ("qwen" or "openrouter")
             use_background: Whether to include background information in prompts
             language: Language for output ("zh" for Chinese, "en" for English)
             debug: Enable debug mode to export full prompts sent to LLM
         """
-        self.qwen_client = QwenAPIClient(api_key)
+        self.provider = provider.lower()
         self.prompts_dir = Path("prompts")
         self.use_background = use_background
         self.background_content = None
         self.language = language
         self.debug = debug
+        
+        # Initialize the appropriate LLM client
+        if self.provider == "qwen":
+            from core.llm.qwen_api_client import QwenAPIClient
+            self.llm_client = QwenAPIClient(api_key)
+        elif self.provider == "openrouter":
+            from core.llm.openrouter_api_client import OpenRouterAPIClient
+            self.llm_client = OpenRouterAPIClient(api_key)
+        else:
+            raise ValueError(f"Unsupported provider: {provider}. Supported providers are 'qwen' and 'openrouter'.")
         
         # Load background information if enabled
         if self.use_background:
@@ -250,8 +261,8 @@ class EngagingMomentsAnalyzer:
         self._export_debug_prompt(analysis_prompt, "part_analysis", part_name)
         
         try:
-            # Call Qwen API
-            response = self.qwen_client.simple_chat(analysis_prompt, model="qwen-plus")
+            # Call LLM API
+            response = self.llm_client.simple_chat(analysis_prompt)
             
             # Try to parse JSON response with improved extraction
             try:
@@ -364,7 +375,7 @@ Please fix the JSON and return ONLY the valid JSON, no explanations:
         
         try:
             # Use a simpler model for JSON fixing to avoid recursion
-            fixed_response = self.qwen_client.simple_chat(fix_prompt, model="qwen-turbo")
+            fixed_response = self.llm_client.simple_chat(fix_prompt)
             
             # Extract JSON from the fixed response
             json_match = re.search(r'```json\s*(\{.*?\})\s*```', fixed_response, re.DOTALL)
@@ -542,8 +553,8 @@ Please fix the JSON and return ONLY the valid JSON, no explanations:
         self._export_debug_prompt(aggregation_prompt, "aggregation")
         
         try:
-            # Call Qwen API for aggregation
-            response = self.qwen_client.simple_chat(aggregation_prompt, model="qwen-plus")
+            # Call LLM API for aggregation
+            response = self.llm_client.simple_chat(aggregation_prompt)
             
             # Parse JSON response with improved extraction
             try:
@@ -623,7 +634,6 @@ You are a JSON repair expert. I have a malformed JSON response for video moment 
 The response should follow this structure:
 {{
   "analysis_info": {{
-    "video_title": "Video analysis results",
     "analysis_date": "2024-01-01"
   }},
   "top_engaging_moments": [
@@ -668,7 +678,7 @@ Please fix the JSON and return ONLY the valid JSON, no explanations:
         
         try:
             # Use a simpler model for JSON fixing
-            fixed_response = self.qwen_client.simple_chat(fix_prompt, model="qwen-turbo")
+            fixed_response = self.llm_client.simple_chat(fix_prompt)
             
             # Extract JSON from the fixed response
             json_match = re.search(r'```json\s*(\{.*?\})\s*```', fixed_response, re.DOTALL)
@@ -820,7 +830,6 @@ Moment {i}:
     def _create_empty_aggregation_result(self) -> Dict[str, Any]:
         """Create empty aggregation result"""
         return {
-            "video_title": "Video analysis results",
             "top_engaging_moments": [],
             "total_moments": 0,
             "analysis_timestamp": datetime.now().isoformat() + 'Z',
@@ -840,7 +849,6 @@ Moment {i}:
         
         return {
             "analysis_info": {
-                "video_title": "Video analysis results",
                 "analysis_date": datetime.now().strftime("%Y-%m-%d")
             },
             "top_engaging_moments": top_moments,

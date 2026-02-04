@@ -31,6 +31,7 @@ from core.video_utils import (
     ResultsFormatter,
     find_existing_download
 )
+from core.config import DEFAULT_LLM_PROVIDER, API_KEY_ENV_VARS
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -47,7 +48,8 @@ class VideoOrchestrator:
                  max_duration_minutes: float = 20.0,
                  whisper_model: str = "base",
                  browser: str = "firefox",
-                 qwen_api_key: Optional[str] = None,
+                 api_key: Optional[str] = None,
+                 llm_provider: str = DEFAULT_LLM_PROVIDER,
                  skip_analysis: bool = False,
                  generate_clips: bool = True,
                  add_titles: bool = True,
@@ -64,7 +66,8 @@ class VideoOrchestrator:
             max_duration_minutes: Maximum duration before splitting (default 20 minutes)
             whisper_model: Whisper model to use for transcript generation
             browser: Browser for cookie extraction
-            qwen_api_key: Qwen API key for engaging moments analysis
+            api_key: API key for the selected LLM provider
+            llm_provider: LLM provider to use ("qwen" or "openrouter", default: from config.py)
             skip_analysis: Skip engaging moments analysis (clips can still use existing analysis file)
             generate_clips: Whether to generate clips from engaging moments
             add_titles: Whether to add artistic titles to clips
@@ -78,6 +81,7 @@ class VideoOrchestrator:
         self.output_dir.mkdir(exist_ok=True)
         self.language = language
         self.debug = debug
+        self.llm_provider = llm_provider.lower()
         
         # Initialize processing components
         self.downloader = VideoDownloader(
@@ -91,21 +95,22 @@ class VideoOrchestrator:
         # Initialize engaging moments analyzer only if not skipping and API key is available
         self.skip_analysis = skip_analysis
         self.engaging_moments_analyzer = None
-        if not skip_analysis and qwen_api_key:
+        if not skip_analysis and api_key:
             try:
                 self.engaging_moments_analyzer = EngagingMomentsAnalyzer(
-                    qwen_api_key, 
+                    api_key, 
+                    provider=self.llm_provider,
                     use_background=use_background,
                     language=language,
                     debug=self.debug
                 )
-                logger.info(f"🧠 Engaging moments analysis: enabled (language: {language}, background: {'yes' if use_background else 'no'})")
+                logger.info(f"🧠 Engaging moments analysis: enabled (provider: {self.llm_provider}, language: {language}, background: {'yes' if use_background else 'no'})")
             except ValueError as e:
                 logger.warning(f"🔑 Engaging moments analysis disabled: {e}")
         elif skip_analysis:
             logger.info("🧠 Engaging moments analysis: skipped (--skip-analysis)")
         else:
-            logger.info("🧠 Engaging moments analysis: disabled (no QWEN_API_KEY)")
+            logger.info(f"🧠 Engaging moments analysis: disabled (no API key for {self.llm_provider})")
         
         # Initialize clip generation and title adding components
         # These can work independently if analysis file already exists
@@ -604,7 +609,10 @@ Examples:
   # Full pipeline with engaging moments, clips, and titles (set QWEN_API_KEY)
   export QWEN_API_KEY=your_api_key
   python video_orchestrator.py "https://www.bilibili.com/video/BV1234567890"
-  python video_orchestrator.py "https://youtu.be/dQw4w9WgXcQ"
+  
+  # Full pipeline with OpenRouter
+  export OPENROUTER_API_KEY=your_api_key
+  python video_orchestrator.py --llm-provider openrouter "https://www.bilibili.com/video/BV1234567890"
   
   # With English output
   python video_orchestrator.py --language en "https://www.youtube.com/watch?v=5MWT_doo68k"
@@ -640,7 +648,7 @@ Examples:
   # Specify output directory
   python video_orchestrator.py -o "my_outputs" "https://www.bilibili.com/video/BV1234567890"
   
-Note: Set QWEN_API_KEY environment variable to enable engaging moments analysis, clip generation, and title addition
+Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your selected LLM provider
         """
     )
     
@@ -676,6 +684,9 @@ Note: Set QWEN_API_KEY environment variable to enable engaging moments analysis,
     parser.add_argument('--language', default='zh',
                        choices=['zh', 'en'],
                        help='Language for output (zh: Chinese, en: English, default: zh)')
+    parser.add_argument('--llm-provider', default='qwen',
+                       choices=['qwen', 'openrouter'],
+                       help='LLM provider to use for engaging moments analysis (default: qwen)')
     parser.add_argument('-f', '--filename',
                        help='Custom filename template')
     parser.add_argument('-v', '--verbose', action='store_true',
@@ -688,8 +699,8 @@ Note: Set QWEN_API_KEY environment variable to enable engaging moments analysis,
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
     
-    # Get Qwen API key from environment
-    qwen_api_key = os.getenv("QWEN_API_KEY")
+    # Get API key from environment based on selected provider
+    api_key = os.getenv(API_KEY_ENV_VARS.get(args.llm_provider, "QWEN_API_KEY"))
     
     # Initialize orchestrator
     orchestrator = VideoOrchestrator(
@@ -697,7 +708,8 @@ Note: Set QWEN_API_KEY environment variable to enable engaging moments analysis,
         max_duration_minutes=args.max_duration,
         whisper_model=args.whisper_model,
         browser=args.browser,
-        qwen_api_key=qwen_api_key,
+        api_key=api_key,
+        llm_provider=args.llm_provider,
         skip_analysis=args.skip_analysis,
         generate_clips=not args.no_clips,
         add_titles=not args.no_titles,
