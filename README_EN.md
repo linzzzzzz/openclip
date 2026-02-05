@@ -61,8 +61,8 @@ Perfect for content creators who want to extract highlights from long livestream
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd OpenClip
+git clone https://github.com/linzzzzzz/openclip.git
+cd openclip
 
 # Install dependencies with uv
 uv sync

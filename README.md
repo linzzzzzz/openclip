@@ -60,8 +60,8 @@
 
 ```bash
 # 克隆仓库
-git clone <repository-url>
-cd OpenClip
+git clone https://github.com/linzzzzzz/openclip.git
+cd openclip
 
 # 使用 uv 安装依赖
 uv sync
