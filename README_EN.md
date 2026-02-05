@@ -82,7 +82,7 @@ export OPENROUTER_API_KEY=your_api_key_here
 
 ### 3. Run the Pipeline
 
-#### Option A: Using Streamlit Web Interface (Recommended)
+#### Option A: Using Streamlit Web Interface
 
 **Start Streamlit app:**
 ```bash

@@ -81,7 +81,7 @@ export OPENROUTER_API_KEY=your_api_key_here
 
 ### 3. 运行流水线
 
-#### 选项 A：使用 Streamlit 网页界面（推荐）
+#### 选项 A：使用 Streamlit 网页界面
 
 **启动 Streamlit 应用：**
 ```bash
