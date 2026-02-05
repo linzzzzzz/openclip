@@ -44,20 +44,21 @@ class VideoOrchestrator:
     """
     
     def __init__(self, 
-                 output_dir: str = "processed_videos",
-                 max_duration_minutes: float = 20.0,
-                 whisper_model: str = "base",
-                 browser: str = "firefox",
-                 api_key: Optional[str] = None,
-                 llm_provider: str = DEFAULT_LLM_PROVIDER,
-                 skip_analysis: bool = False,
-                 generate_clips: bool = True,
-                 add_titles: bool = True,
-                 artistic_style: str = "crystal_ice",
-                 use_background: bool = False,
-                 generate_cover: bool = True,
-                 language: str = "zh",
-                 debug: bool = False):
+                output_dir: str = "processed_videos",
+                max_duration_minutes: float = 20.0,
+                whisper_model: str = "base",
+                browser: str = "firefox",
+                api_key: Optional[str] = None,
+                llm_provider: str = DEFAULT_LLM_PROVIDER,
+                skip_analysis: bool = False,
+                generate_clips: bool = True,
+                add_titles: bool = True,
+                artistic_style: str = "fire_flame",
+                use_background: bool = False,
+                generate_cover: bool = True,
+                language: str = "zh",
+                debug: bool = False,
+                custom_prompt_file: Optional[str] = None):
         """
         Initialize the video orchestrator
         
@@ -76,12 +77,14 @@ class VideoOrchestrator:
             generate_cover: Whether to generate cover images
             language: Language for output ("zh" for Chinese, "en" for English)
             debug: Enable debug mode to export full prompts sent to LLM
+            custom_prompt_file: Path to custom prompt file (optional)
         """
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
         self.language = language
         self.debug = debug
         self.llm_provider = llm_provider.lower()
+        self.custom_prompt_file = custom_prompt_file
         
         # Initialize processing components
         self.downloader = VideoDownloader(
@@ -98,11 +101,12 @@ class VideoOrchestrator:
         if not skip_analysis and api_key:
             try:
                 self.engaging_moments_analyzer = EngagingMomentsAnalyzer(
-                    api_key, 
+                    api_key=api_key, 
                     provider=self.llm_provider,
                     use_background=use_background,
                     language=language,
-                    debug=self.debug
+                    debug=self.debug,
+                    custom_prompt_file=custom_prompt_file
                 )
                 logger.info(f"🧠 Engaging moments analysis: enabled (provider: {self.llm_provider}, language: {language}, background: {'yes' if use_background else 'no'})")
             except ValueError as e:

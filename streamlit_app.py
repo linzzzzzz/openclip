@@ -33,6 +33,7 @@ FILE_PATH = "persistent_data.json"
 DEFAULT_DATA = {
     # Checkboxes
     'use_background': False,
+    'use_custom_prompt': False,
     'force_whisper': False,
     'skip_download': False,
     'skip_analysis': False,
@@ -50,6 +51,8 @@ DEFAULT_DATA = {
     'language': "zh",
     'browser': "firefox",
     'output_dir': "processed_videos",
+    'custom_prompt_file': None,
+    'custom_prompt_text': "",
     # Processing result
     'processing_result': None
 }
@@ -366,12 +369,30 @@ with st.sidebar:
     
     # Checkboxes for additional options
     use_background = st.checkbox(
-        "Use Background Info",
+        "Use Additional Background",
         value=data['use_background'],
         help="Include streamer names and context for better analysis",
         key=f"use_background_{st.session_state.reset_counter}"
     )
     data['use_background'] = use_background
+
+    # Background info notice (only shown if use_background is checked)
+    if use_background:
+        # st.subheader("📝 Background Information")
+        st.info("Please ensure your background information is in the `prompts/background/background.md` file.")
+    
+    # Custom prompt file option
+    use_custom_prompt = st.checkbox(
+        "Customize Highlight Analysis Prompt",
+        value=data.get('use_custom_prompt', False),
+        help="Customize the prompt for analyzing engaging moments",
+        key=f"use_custom_prompt_{st.session_state.reset_counter}"
+    )
+    data['use_custom_prompt'] = use_custom_prompt
+    
+    # Initialize custom_prompt_text if not present
+    if 'custom_prompt_text' not in data:
+        data['custom_prompt_text'] = ""
     
     force_whisper = st.checkbox(
         "Force Whisper",
@@ -449,6 +470,59 @@ with st.sidebar:
 # Main content area
 st.header("▶️ Process Video")
 
+# Custom prompt editor (shown only if use_custom_prompt is checked)
+custom_prompt_file = data.get('custom_prompt_file')
+if use_custom_prompt:
+    st.subheader("📝 Highlight Analysis Prompt Editor")
+    st.info("Edit the prompt below to customize how engaging moments are analyzed.")
+    
+    # Load default prompt if custom prompt text is empty
+    if not data.get('custom_prompt_text'):
+        default_prompt_path = Path("./prompts/engaging_moments_part_requirement.md")
+        if default_prompt_path.exists():
+            with open(default_prompt_path, 'r', encoding='utf-8') as f:
+                data['custom_prompt_text'] = f.read()
+    
+    # Text area for custom prompt
+    custom_prompt_text = st.text_area(
+        "Highlight Analysis Prompt",
+        value=data['custom_prompt_text'],
+        height=500,
+        help="Edit the prompt to customize engaging moments analysis. This will be used instead of the default prompt.",
+        key=f"custom_prompt_text_{st.session_state.reset_counter}"
+    )
+    data['custom_prompt_text'] = custom_prompt_text
+    
+    # Save button for custom prompt
+    if st.button("💾 Save Prompt", key=f"save_custom_prompt_{st.session_state.reset_counter}"):
+        if custom_prompt_text:
+            try:
+                # Create temp directory if it doesn't exist
+                temp_dir = Path("./temp_prompts")
+                temp_dir.mkdir(exist_ok=True)
+                
+                # Generate unique filename with timestamp
+                custom_prompt_file = str(temp_dir / f"custom_highlight_prompt_{int(time.time())}.md")
+                
+                # Write custom prompt to file
+                with open(custom_prompt_file, "w", encoding='utf-8') as f:
+                    f.write(custom_prompt_text)
+                
+                # Save file path to data
+                data['custom_prompt_file'] = custom_prompt_file
+                
+                # Show success message
+                st.success(f"✅ Highlight analysis prompt saved successfully!")
+                st.caption(f"Saved to: {custom_prompt_file}")
+            except Exception as e:
+                st.error(f"❌ Failed to save highlight analysis prompt: {str(e)}")
+        else:
+            st.warning("⚠️ Please enter a highlight analysis prompt before saving.")
+    
+    # Show current saved prompt file if exists
+    if custom_prompt_file and Path(custom_prompt_file).exists():
+        st.info(f"Current saved highlight analysis prompt: {Path(custom_prompt_file).name}")
+
 # Progress bar and status
 progress_bar = st.progress(0)
 status_text = st.empty()
@@ -481,7 +555,8 @@ if st.button("Process Video", disabled=not video_source):
                     use_background=use_background,
                     generate_cover=generate_cover,
                     language=language,
-                    debug=False
+                    debug=False,
+                    custom_prompt_file=custom_prompt_file
                 )
                 
                 # Progress callback function

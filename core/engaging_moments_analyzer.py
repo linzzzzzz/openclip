@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class EngagingMomentsAnalyzer:
     """Analyzes video transcripts to identify engaging moments using LLM APIs"""
     
-    def __init__(self, api_key: Optional[str] = None, provider: str = "qwen", use_background: bool = False, language: str = "zh", debug: bool = False):
+    def __init__(self, api_key: Optional[str] = None, provider: str = "qwen", use_background: bool = False, language: str = "zh", debug: bool = False, custom_prompt_file: Optional[str] = None):
         """
         Initialize the analyzer
         
@@ -29,7 +29,9 @@ class EngagingMomentsAnalyzer:
             use_background: Whether to include background information in prompts
             language: Language for output ("zh" for Chinese, "en" for English)
             debug: Enable debug mode to export full prompts sent to LLM
+            custom_prompt_file: Path to custom prompt file (optional)
         """
+        self.custom_prompt_file = custom_prompt_file
         self.provider = provider.lower()
         self.prompts_dir = Path("prompts")
         self.use_background = use_background
@@ -119,14 +121,31 @@ class EngagingMomentsAnalyzer:
         Returns:
             Content of the prompt file
         """
-        # Load base prompt template (without language suffix)
-        base_prompt_path = self.prompts_dir / f"{prompt_name}.md"
-        
-        if not base_prompt_path.exists():
-            raise FileNotFoundError(f"Base prompt file not found: {base_prompt_path}")
-        
-        with open(base_prompt_path, 'r', encoding='utf-8') as f:
-            prompt_content = f.read().strip()
+        # Use custom prompt file if specified and this is the part requirement prompt
+        if prompt_name == "engaging_moments_part_requirement" and self.custom_prompt_file:
+            custom_prompt_path = Path(self.custom_prompt_file)
+            if custom_prompt_path.exists():
+                logger.info(f"📝 Using custom prompt file: {custom_prompt_path}")
+                with open(custom_prompt_path, 'r', encoding='utf-8') as f:
+                    prompt_content = f.read().strip()
+            else:
+                logger.warning(f"Custom prompt file not found: {custom_prompt_path}")
+                logger.info(f"Falling back to default prompt: engaging_moments_part_requirement.md")
+                # Fall back to default prompt
+                base_prompt_path = self.prompts_dir / f"{prompt_name}.md"
+                if not base_prompt_path.exists():
+                    raise FileNotFoundError(f"Base prompt file not found: {base_prompt_path}")
+                with open(base_prompt_path, 'r', encoding='utf-8') as f:
+                    prompt_content = f.read().strip()
+        else:
+            # Load base prompt template (without language suffix)
+            base_prompt_path = self.prompts_dir / f"{prompt_name}.md"
+            
+            if not base_prompt_path.exists():
+                raise FileNotFoundError(f"Base prompt file not found: {base_prompt_path}")
+            
+            with open(base_prompt_path, 'r', encoding='utf-8') as f:
+                prompt_content = f.read().strip()
         
         # Load and append language-specific patch
         language_patch_path = self.prompts_dir / "language_patches" / f"{self.language}.md"
