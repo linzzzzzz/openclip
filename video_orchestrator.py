@@ -279,6 +279,9 @@ class VideoOrchestrator:
                 video_clips_dir = self.clips_dir / safe_video_name
                 video_clips_dir.mkdir(parents=True, exist_ok=True)
                 
+                # Initialize video_titles_dir to video_clips_dir as default (for cover generation)
+                video_titles_dir = video_clips_dir
+                
                 # Update clip generator output dir
                 self.clip_generator.output_dir = video_clips_dir
                 

@@ -31,6 +31,8 @@ Perfect for content creators who want to extract highlights from long livestream
 - **Artistic Titles**: 10 professional title styles (fire, neon, crystal, metallic, etc.)
 - **Cover Images**: Auto-generates styled cover images for each clip
 - **Background Context**: Optional streamer/context information for better analysis
+- **Dual Interface Support**: Command-line interface and Streamlit web interface for different user needs
+- **Real-time Preview**: Streamlit interface provides real-time preview of generated content
 
 ## 📋 Prerequisites
 
@@ -79,6 +81,35 @@ export OPENROUTER_API_KEY=your_api_key_here
 ```
 
 ### 3. Run the Pipeline
+
+#### Option A: Using Streamlit Web Interface (Recommended)
+
+**Start Streamlit app:**
+```bash
+uv run streamlit run streamlit_app.py
+```
+
+Once the app starts, open your browser and visit the displayed URL (typically `http://localhost:8501`).
+
+**Streamlit Interface Features:**
+- ✅ Support for video URLs (Bilibili, YouTube) and local file uploads
+- ✅ Real-time progress bar and status updates
+- ✅ Intuitive form interface for all configuration options
+- ✅ Built-in API key management
+- ✅ 10 artistic title style selections
+- ✅ Real-time preview of generated clips and covers
+- ✅ Persistent processing result storage
+
+**Usage Flow:**
+1. Select input type (Video URL or Local File) in the sidebar
+2. Configure processing options (LLM provider, artistic style, etc.)
+3. Click "Process Video" button to start processing
+4. View real-time progress and final results
+5. Preview generated clips and covers in the results section
+
+**Advantages:** No need to remember command-line parameters, provides visual operation interface, suitable for all users.
+
+#### Option B: Using Command Line Interface
 
 **Process a Bilibili video:**
 ```bash

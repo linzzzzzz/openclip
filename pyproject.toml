@@ -9,4 +9,5 @@ dependencies = [
     "imageio-ffmpeg>=0.4.0",
     "yt-dlp @ git+https://github.com/yt-dlp/yt-dlp.git@master",
     "requests>=2.31.0",
+    "streamlit>=1.30.0",
 ]
