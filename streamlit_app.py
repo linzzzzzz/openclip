@@ -29,6 +29,164 @@ st.set_page_config(
 # --------------------------
 FILE_PATH = "persistent_data.json"
 
+# Define translation dictionaries
+TRANSLATIONS = {
+    'en': {
+        'app_title': 'OpenClip',
+        'sidebar_title': '🎬 OpenClip',
+        'input_type': 'Input Type',
+        'video_url': 'Video URL',
+        'upload_file': 'Upload Video File',
+        'llm_provider': 'LLM Provider',
+        'api_key': 'API Key',
+        'artistic_style': 'Artistic Style',
+        'max_duration': 'Max Duration (minutes)',
+        'whisper_model': 'Whisper Model',
+        'language': 'Language',
+        'browser': 'Browser',
+        'output_dir': 'Output Directory',
+        'use_background': 'Use Background Info',
+        'use_custom_prompt': 'Use Custom Highlight Analysis Prompt',
+        'force_whisper': 'Force Whisper',
+        'skip_download': 'Skip Download',
+        'skip_analysis': 'Skip Analysis',
+        'generate_clips': 'Generate Clips',
+        'add_titles': 'Add Titles',
+        'generate_cover': 'Generate Cover',
+        'process_video': '🎬 Process Video',
+        'background_info': 'Background Information',
+        'custom_highlight_prompt': 'Custom Highlight Analysis Prompt',
+        'save_background': 'Save Background Information',
+        'save_custom_prompt': 'Save Custom Highlight Analysis Prompt',
+        'background_info_notice': 'Please ensure your background information is in the `prompts/background/background.md` file.',
+        'background_info_warning': 'The system will use the content of `prompts/background/background.md` for analysis.',
+        'background_file_path': 'Background information is stored in:',
+        'custom_prompt_editor': 'Custom Highlight Analysis Prompt Editor',
+        'custom_prompt_info': 'Edit the prompt below to customize how engaging moments are analyzed.',
+        'custom_prompt_help': 'Edit the prompt to customize engaging moments analysis. This will be used instead of the default prompt.',
+        'current_saved_prompt': 'Current saved prompt file:',
+        'results': '📊 Results',
+        'saved_results': '📊 Saved Results',
+        'clear_results': 'Clear Saved Results',
+        'processing_success': '✅ Video processing completed successfully!',
+        'processing_time': '⏱️ Processing time:',
+        'video_information': '🎥 Video Information',
+        'transcript_source': '📝 Transcript source:',
+        'error': '❌ Unexpected error:',
+        'reset_form': '🔄 Reset Form',
+        'confirmation': 'Are you sure you want to reset all settings?',
+        'yes_reset': 'Yes, Reset',
+        'cancel': 'Cancel',
+        'reset_success': '✅ Form has been reset!',
+        'background_info_config': 'Background Information Configuration',
+        'background_info_edit': 'Edit the background information to provide context about streamers, nicknames, or recurring themes for better analysis.',
+        'background_info_help': 'Enter information about streamers, their nicknames, games, and common terms to improve AI analysis.',
+        'background_save_success': 'Background information saved successfully!',
+        'background_save_error': 'Failed to save background information:',
+        'custom_prompt_save_success': 'Custom highlight analysis prompt saved successfully!',
+        'custom_prompt_save_error': 'Failed to save custom highlight analysis prompt:',
+        'select_input_type': 'Select input type',
+        'enter_video_url': 'Enter Bilibili or YouTube URL',
+        'video_url_help': 'Supports Bilibili (https://www.bilibili.com/video/BV...) and YouTube (https://www.youtube.com/watch?v=...) URLs',
+        'upload_video_help': 'Supports common video formats',
+        'file_uploaded': 'File uploaded:',
+        'select_llm_provider': 'Select which AI provider to use for analysis',
+        'enter_api_key': 'Enter API key or leave blank if set as environment variable',
+        'api_key_help': 'You can also set the API_KEY environment variable',
+        'select_artistic_style': 'Select the visual style for titles and covers',
+        'max_duration_help': 'Videos longer than this will be split',
+        'select_whisper_model': 'Select Whisper model for transcript generation',
+        'select_language': 'Language for analysis and output',
+        'select_browser': 'Browser to use for downloading (Firefox recommended)',
+        'enter_output_dir': 'Directory to save processed videos',
+        'force_whisper_help': 'Force transcript generation via Whisper (ignore platform subtitles)',
+        'skip_download_help': 'Skip video download (use existing downloaded video)',
+        'skip_analysis_help': 'Skip engaging moments analysis (use existing analysis file)',
+        'generate_clips_help': 'Generate video clips for engaging moments',
+        'add_titles_help': 'Add artistic titles to video clips',
+        'generate_cover_help': 'Generate cover image for the video',
+        'use_background_help': 'Use background information from prompts/background/background.md',
+        'use_custom_prompt_help': 'Use custom prompt for highlight analysis',
+    },
+    'zh': {
+        'app_title': 'OpenClip',
+        'sidebar_title': '🎬 OpenClip',
+        'input_type': '输入类型',
+        'video_url': '视频链接',
+        'upload_file': '上传视频文件',
+        'llm_provider': 'LLM 提供商',
+        'api_key': 'API 密钥',
+        'artistic_style': '艺术风格',
+        'max_duration': '最大时长（分钟）',
+        'whisper_model': 'Whisper 模型',
+        'language': '语言',
+        'browser': '浏览器',
+        'output_dir': '输出目录',
+        'use_background': '使用背景信息提示词',
+        'use_custom_prompt': '使用自定义高光分析提示词',
+        'force_whisper': '强制使用 Whisper',
+        'skip_download': '跳过下载',
+        'skip_analysis': '跳过分析',
+        'generate_clips': '生成片段',
+        'add_titles': '添加标题',
+        'generate_cover': '生成封面',
+        'process_video': '🎬 处理视频',
+        'background_info': '背景信息',
+        'custom_highlight_prompt': '自定义高光分析提示',
+        'save_background': '保存背景信息',
+        'save_custom_prompt': '保存自定义高光分析提示',
+        'background_info_notice': '请确保您的背景信息在 `prompts/background/background.md` 文件中。',
+        'background_info_warning': '系统将使用 `prompts/background/background.md` 文件的内容进行分析。',
+        'background_file_path': '背景信息存储在：',
+        'custom_prompt_editor': '自定义高光分析提示编辑器',
+        'custom_prompt_info': '编辑下面的提示以自定义如何分析精彩时刻。',
+        'custom_prompt_help': '编辑提示以自定义精彩时刻分析。这将替代默认提示。',
+        'current_saved_prompt': '当前保存的提示文件：',
+        'results': '📊 结果',
+        'saved_results': '📊 保存的结果',
+        'clear_results': '清除保存的结果',
+        'processing_success': '✅ 视频处理成功完成！',
+        'processing_time': '⏱️ 处理时间：',
+        'video_information': '🎥 视频信息',
+        'transcript_source': '📝 字幕来源：',
+        'error': '❌ 意外错误：',
+        'reset_form': '🔄 重置表单',
+        'confirmation': '确定要重置所有设置吗？',
+        'yes_reset': '是的，重置',
+        'cancel': '取消',
+        'reset_success': '✅ 表单已重置！',
+        'background_info_config': '背景信息配置',
+        'background_info_edit': '编辑背景信息以提供有关主播、昵称或 recurring themes 的上下文，以获得更好的分析。',
+        'background_info_help': '输入有关主播、他们的昵称、游戏和常用术语的信息，以改善 AI 分析。',
+        'background_save_success': '背景信息保存成功！',
+        'background_save_error': '保存背景信息失败：',
+        'custom_prompt_save_success': '自定义高光分析提示保存成功！',
+        'custom_prompt_save_error': '保存自定义高光分析提示失败：',
+        'select_input_type': '选择输入类型',
+        'enter_video_url': '输入 B 站或 YouTube 链接',
+        'video_url_help': '支持 B 站 (https://www.bilibili.com/video/BV...) 和 YouTube (https://www.youtube.com/watch?v=...) 链接',
+        'upload_video_help': '支持常见视频格式',
+        'file_uploaded': '文件已上传：',
+        'select_llm_provider': '选择用于分析的 AI 提供商',
+        'enter_api_key': '输入 API 密钥或留空（如果已设置为环境变量）',
+        'api_key_help': '您也可以设置 API_KEY 环境变量',
+        'select_artistic_style': '选择标题和封面的视觉风格',
+        'max_duration_help': '超过此时长的视频将被分割',
+        'select_whisper_model': '选择用于生成字幕的 Whisper 模型',
+        'select_language': '分析和输出的语言',
+        'select_browser': '用于下载的浏览器（推荐 Firefox）',
+        'enter_output_dir': '保存处理后视频的目录',
+        'force_whisper_help': '强制通过 Whisper 生成字幕（忽略平台字幕）',
+        'skip_download_help': '跳过视频下载（使用现有的已下载视频）',
+        'skip_analysis_help': '跳过精彩时刻分析（使用现有的分析文件）',
+        'generate_clips_help': '为精彩时刻生成视频片段',
+        'add_titles_help': '为视频片段添加艺术标题',
+        'generate_cover_help': '为视频生成封面图像',
+        'use_background_help': '使用 prompts/background/background.md 中的背景信息',
+        'use_custom_prompt_help': '使用自定义提示进行高光分析',
+    }
+}
+
 # Define default data
 DEFAULT_DATA = {
     # Checkboxes
@@ -53,6 +211,8 @@ DEFAULT_DATA = {
     'output_dir': "processed_videos",
     'custom_prompt_file': None,
     'custom_prompt_text': "",
+    # Language setting
+    'ui_language': "zh",
     # Processing result
     'processing_result': None
 }
@@ -73,6 +233,15 @@ def save_to_file(data):
 # Load persistent data
 data = load_from_file()
 
+# Initialize UI language if not present
+if 'ui_language' not in data:
+    data['ui_language'] = 'zh'
+    save_to_file(data)
+
+# Get current language
+current_lang = data.get('ui_language', 'zh')
+t = TRANSLATIONS[current_lang]
+
 # Initialize reset counter in session state
 if 'reset_counter' not in st.session_state:
     st.session_state.reset_counter = 0
@@ -84,20 +253,20 @@ just_processed = False
 def display_results(result):
     """Display processing results consistently"""
     if result.success:
-        st.success("✅ Video processing completed successfully!")
+        st.success(t['processing_success'])
         
         # Display processing time
-        st.info(f"⏱️ Processing time: {result.processing_time:.2f} seconds")
+        st.info(f"{t['processing_time']} {result.processing_time:.2f} seconds")
         
         # Display video info
         if result.video_info:
-            with st.expander("🎥 Video Information"):
+            with st.expander(t['video_information']):
                 for key, value in result.video_info.items():
                     st.write(f"**{key.capitalize()}:** {value}")
         
         # Display transcript info
         if result.transcript_source:
-            st.info(f"📝 Transcript source: {result.transcript_source}")
+            st.info(f"{t['transcript_source']} {result.transcript_source}")
         
         # Display analysis info
         if result.engaging_moments_analysis:
@@ -173,7 +342,7 @@ def display_results(result):
         if output_dir:
             st.info(f"📁 All outputs saved to: {output_dir}")
     else:
-        st.error(f"❌ Processing failed: {result.error_message}")
+        st.error(f"{t['error']} {result.error_message}")
 
 # Custom CSS
 st.markdown("""
@@ -249,9 +418,25 @@ A lightweight automated video processing pipeline that identifies and extracts t
 with st.sidebar:
     st.header("⚙️ Configuration")
     
+    # UI Language Selector
+    ui_language = st.selectbox(
+        "UI Language",
+        options=["English", "中文"],
+        index=["English", "中文"].index("中文" if current_lang == "zh" else "English"),
+        help="Select language for the user interface",
+        key=f"ui_language_{st.session_state.reset_counter}"
+    )
+    new_lang = "zh" if ui_language == "中文" else "en"
+    if new_lang != current_lang:
+        data['ui_language'] = new_lang
+        save_to_file(data)
+        st.rerun()
+    
+    st.divider()
+    
     # Video input options
     input_type = st.radio(
-        "Input Type",
+        t['input_type'],
         options=["Video URL", "Local File"],
         index=["Video URL", "Local File"].index(data['input_type']),
         key=f"input_type_{st.session_state.reset_counter}"
@@ -260,18 +445,18 @@ with st.sidebar:
     
     if input_type == "Video URL":
         video_source = st.text_input(
-            "Video URL",
+            t['video_url'],
             value=data['video_source'],
-            placeholder="Enter Bilibili or YouTube URL",
-            help="Supports Bilibili (https://www.bilibili.com/video/BV...) and YouTube (https://www.youtube.com/watch?v=...) URLs",
+            placeholder=t['enter_video_url'],
+            help=t['video_url_help'],
             key=f"video_source_{st.session_state.reset_counter}"
         )
         data['video_source'] = video_source
     else:
         uploaded_file = st.file_uploader(
-            "Upload Video File",
+            t['upload_file'],
             type=["mp4", "webm", "avi", "mov", "mkv"],
-            help="Supports common video formats",
+            help=t['upload_video_help'],
             key=f"uploaded_file_{st.session_state.reset_counter}"
         )
         if uploaded_file:
@@ -281,17 +466,17 @@ with st.sidebar:
             video_source = str(temp_dir / uploaded_file.name)
             with open(video_source, "wb") as f:
                 f.write(uploaded_file.getbuffer())
-            st.success(f"File uploaded: {uploaded_file.name}")
+            st.success(f"{t['file_uploaded']} {uploaded_file.name}")
             data['video_source'] = video_source
         else:
             video_source = None
     
     # LLM provider selection
     llm_provider = st.selectbox(
-        "LLM Provider",
+        t['llm_provider'],
         options=["qwen", "openrouter"],
         index=["qwen", "openrouter"].index(data['llm_provider']),
-        help="Select which AI provider to use for analysis",
+        help=t['select_llm_provider'],
         key=f"llm_provider_{st.session_state.reset_counter}"
     )
     data['llm_provider'] = llm_provider
@@ -299,11 +484,11 @@ with st.sidebar:
     # API key input (optional, since it can be set via environment variable)
     api_key_env_var = API_KEY_ENV_VARS.get(llm_provider, "QWEN_API_KEY")
     api_key = st.text_input(
-        f"{llm_provider.upper()} API Key",
+        f"{llm_provider.upper()} {t['api_key']}",
         value=data['api_key'],
         type="password",
-        placeholder=f"Enter {api_key_env_var} or leave blank if set as environment variable",
-        help=f"You can also set the {api_key_env_var} environment variable",
+        placeholder=t['enter_api_key'],
+        help=t['api_key_help'],
         key=f"api_key_{st.session_state.reset_counter}"
     )
     data['api_key'] = api_key
@@ -314,10 +499,10 @@ with st.sidebar:
         "fire_flame", "metallic_silver", "glowing_plasma", "stone_carved", "glass_transparent"
     ]
     artistic_style = st.selectbox(
-        "Artistic Style",
+        t['artistic_style'],
         options=artistic_styles,
         index=artistic_styles.index(data['artistic_style']),
-        help="Select the visual style for titles and covers",
+        help=t['select_artistic_style'],
         key=f"artistic_style_{st.session_state.reset_counter}"
     )
     data['artistic_style'] = artistic_style
@@ -326,22 +511,22 @@ with st.sidebar:
     col1, col2 = st.columns(2)
     with col1:
         max_duration = st.number_input(
-            "Max Duration (minutes)",
+            t['max_duration'],
             min_value=1.0,
             max_value=60.0,
             value=data['max_duration'],
             step=1.0,
-            help="Videos longer than this will be split",
+            help=t['max_duration_help'],
             key=f"max_duration_{st.session_state.reset_counter}"
         )
         data['max_duration'] = max_duration
     
         whisper_models = ["tiny", "base", "small", "medium", "large", "turbo"]
         whisper_model = st.selectbox(
-            "Whisper Model",
+            t['whisper_model'],
             options=whisper_models,
             index=whisper_models.index(data['whisper_model']),
-            help="Select Whisper model for transcript generation",
+            help=t['select_whisper_model'],
             key=f"whisper_model_{st.session_state.reset_counter}"
         )
         data['whisper_model'] = whisper_model
@@ -349,29 +534,29 @@ with st.sidebar:
     with col2:
         languages = ["zh", "en"]
         language = st.selectbox(
-            "Language",
+            t['language'],
             options=languages,
             index=languages.index(data['language']),
-            help="Language for analysis and output",
+            help=t['select_language'],
             key=f"language_{st.session_state.reset_counter}"
         )
         data['language'] = language
     
         browsers = ["firefox", "chrome", "edge", "safari"]
         browser = st.selectbox(
-            "Browser",
+            t['browser'],
             options=browsers,
             index=browsers.index(data['browser']),
-            help="Browser for cookie extraction (for Bilibili downloads)",
+            help=t['select_browser'],
             key=f"browser_{st.session_state.reset_counter}"
         )
         data['browser'] = browser
     
     # Checkboxes for additional options
     use_background = st.checkbox(
-        "Use Additional Background",
+        t['use_background'],
         value=data['use_background'],
-        help="Include streamer names and context for better analysis",
+        help=t['use_background_help'],
         key=f"use_background_{st.session_state.reset_counter}"
     )
     data['use_background'] = use_background
@@ -379,13 +564,13 @@ with st.sidebar:
     # Background info notice (only shown if use_background is checked)
     if use_background:
         # st.subheader("📝 Background Information")
-        st.info("Please ensure your background information is in the `prompts/background/background.md` file.")
+        st.info(t['background_info_notice'])
     
     # Custom prompt file option
     use_custom_prompt = st.checkbox(
-        "Customize Highlight Analysis Prompt",
+        t['use_custom_prompt'],
         value=data.get('use_custom_prompt', False),
-        help="Customize the prompt for analyzing engaging moments",
+        help=t['use_custom_prompt_help'],
         key=f"use_custom_prompt_{st.session_state.reset_counter}"
     )
     data['use_custom_prompt'] = use_custom_prompt
@@ -393,68 +578,68 @@ with st.sidebar:
     # Initialize custom_prompt_text if not present
     if 'custom_prompt_text' not in data:
         data['custom_prompt_text'] = ""
-    
+
     force_whisper = st.checkbox(
-        "Force Whisper",
+        t['force_whisper'],
         value=data['force_whisper'],
-        help="Force transcript generation via Whisper (ignore platform subtitles)",
+        help=t['force_whisper_help'],
         key=f"force_whisper_{st.session_state.reset_counter}"
     )
     data['force_whisper'] = force_whisper
     
     skip_download = st.checkbox(
-        "Skip Download",
+        t['skip_download'],
         value=data['skip_download'],
-        help="Skip video download (use existing downloaded video)",
+        help=t['skip_download_help'],
         key=f"skip_download_{st.session_state.reset_counter}"
     )
     data['skip_download'] = skip_download
     
     skip_analysis = st.checkbox(
-        "Skip Analysis",
+        t['skip_analysis'],
         value=data['skip_analysis'],
-        help="Skip engaging moments analysis (use existing analysis file)",
+        help=t['skip_analysis_help'],
         key=f"skip_analysis_{st.session_state.reset_counter}"
     )
     data['skip_analysis'] = skip_analysis
     
     # Clip generation options
     generate_clips = st.checkbox(
-        "Generate Clips",
+        t['generate_clips'],
         value=data['generate_clips'],
-        help="Generate video clips from engaging moments",
+        help=t['generate_clips_help'],
         key=f"generate_clips_{st.session_state.reset_counter}"
     )
     data['generate_clips'] = generate_clips
     
     add_titles = st.checkbox(
-        "Add Titles",
+        t['add_titles'],
         value=data['add_titles'],
-        help="Add artistic titles to clips",
+        help=t['add_titles_help'],
         key=f"add_titles_{st.session_state.reset_counter}"
     )
     data['add_titles'] = add_titles
     
     generate_cover = st.checkbox(
-        "Generate Covers",
+        t['generate_cover'],
         value=data['generate_cover'],
-        help="Generate cover images for clips",
+        help=t['generate_cover_help'],
         key=f"generate_cover_{st.session_state.reset_counter}"
     )
     data['generate_cover'] = generate_cover
     
     # Output directory
     output_dir = st.text_input(
-        "Output Directory",
+        t['output_dir'],
         value=data['output_dir'],
-        help="Directory for all processed outputs",
+        help=t['enter_output_dir'],
         key=f"output_dir_{st.session_state.reset_counter}"
     )
     data['output_dir'] = output_dir
 
     # Start Over button in sidebar
     st.divider()
-    if st.button("🔄 Start Over"):
+    if st.button(t['reset_form']):
         # Reset all data to defaults
         for key, value in DEFAULT_DATA.items():
             data[key] = value
@@ -473,8 +658,8 @@ st.header("▶️ Process Video")
 # Custom prompt editor (shown only if use_custom_prompt is checked)
 custom_prompt_file = data.get('custom_prompt_file')
 if use_custom_prompt:
-    st.subheader("📝 Highlight Analysis Prompt Editor")
-    st.info("Edit the prompt below to customize how engaging moments are analyzed.")
+    st.subheader(t['custom_prompt_editor'])
+    st.info(t['custom_prompt_info'])
     
     # Load default prompt if custom prompt text is empty
     if not data.get('custom_prompt_text'):
@@ -485,10 +670,10 @@ if use_custom_prompt:
     
     # Text area for custom prompt
     custom_prompt_text = st.text_area(
-        "Highlight Analysis Prompt",
+        t['custom_highlight_prompt'],
         value=data['custom_prompt_text'],
         height=500,
-        help="Edit the prompt to customize engaging moments analysis. This will be used instead of the default prompt.",
+        help=t['custom_prompt_help'],
         key=f"custom_prompt_text_{st.session_state.reset_counter}"
     )
     data['custom_prompt_text'] = custom_prompt_text
@@ -512,23 +697,23 @@ if use_custom_prompt:
                 data['custom_prompt_file'] = custom_prompt_file
                 
                 # Show success message
-                st.success(f"✅ Highlight analysis prompt saved successfully!")
+                st.success(f"✅ {t['custom_prompt_save_success']}")
                 st.caption(f"Saved to: {custom_prompt_file}")
             except Exception as e:
-                st.error(f"❌ Failed to save highlight analysis prompt: {str(e)}")
+                st.error(f"❌ {t['custom_prompt_save_error']} {str(e)}")
         else:
             st.warning("⚠️ Please enter a highlight analysis prompt before saving.")
     
     # Show current saved prompt file if exists
     if custom_prompt_file and Path(custom_prompt_file).exists():
-        st.info(f"Current saved highlight analysis prompt: {Path(custom_prompt_file).name}")
+        st.info(f"{t['current_saved_prompt']} {Path(custom_prompt_file).name}")
 
 # Progress bar and status
 progress_bar = st.progress(0)
 status_text = st.empty()
 
 # Process Video button
-if st.button("Process Video", disabled=not video_source):
+if st.button(t['process_video'], disabled=not video_source):
     if not video_source:
         st.error("Please provide a video URL or upload a file")
     else:
