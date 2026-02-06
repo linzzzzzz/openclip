@@ -58,8 +58,7 @@ class VideoOrchestrator:
                 generate_cover: bool = True,
                 language: str = "zh",
                 debug: bool = False,
-                custom_prompt_file: Optional[str] = None,
-                agent_step: Optional[str] = None):
+                custom_prompt_file: Optional[str] = None):
         """
         Initialize the video orchestrator
 
@@ -79,7 +78,6 @@ class VideoOrchestrator:
             language: Language for output ("zh" for Chinese, "en" for English)
             debug: Enable debug mode to export full prompts sent to LLM
             custom_prompt_file: Path to custom prompt file (optional)
-            agent_step: Agent step ("prepare" or "generate"), or None for normal operation
         """
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
@@ -87,18 +85,8 @@ class VideoOrchestrator:
         self.debug = debug
         self.llm_provider = llm_provider.lower()
         self.custom_prompt_file = custom_prompt_file
-        self.agent_step = agent_step
         self.use_background = use_background
 
-        # Agent mode overrides
-        if self.agent_step == 'prepare':
-            skip_analysis = True
-            generate_clips = False
-            add_titles = False
-            generate_cover = False
-        elif self.agent_step == 'generate':
-            skip_analysis = True
-        
         # Initialize processing components
         self.downloader = VideoDownloader(
             output_dir=str(self.output_dir / "downloads"),
@@ -259,26 +247,6 @@ class VideoOrchestrator:
                 if transcript_result['source'] == 'whisper':
                     result.transcript_parts = transcript_result['transcript_parts']
             
-            # Agent mode: export prompts and stop
-            if self.agent_step == 'prepare':
-                logger.info("🤖 Step 4: Exporting analysis prompts for agent step...")
-                if progress_callback:
-                    progress_callback("Exporting analysis prompts for agent...", 80)
-                from core.video_utils import export_agent_prompts
-                manifest = await export_agent_prompts(
-                    result,
-                    self.output_dir,
-                    use_background=self.use_background,
-                    language=self.language,
-                    custom_prompt_file=self.custom_prompt_file
-                )
-                manifest_path = manifest.get('manifest_path', 'unknown')
-                logger.info(f"📋 Agent manifest written to: {manifest_path}")
-                logger.info(f"📝 Exported {len(manifest['prompts'])} prompt(s)")
-                logger.info("🛑 Agent step prepare complete. Analyze prompts and re-run with --agent-step generate")
-                result.success = True
-                return result
-
             # Step 4: Analyze engaging moments (if not skipped and analyzer available)
             engaging_result = None
             if self.engaging_moments_analyzer and not self.skip_analysis:
@@ -735,12 +703,6 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
                        help='Enable verbose logging')
     parser.add_argument('--debug', action='store_true',
                        help='Enable debug mode to export full prompts sent to LLM')
-    parser.add_argument('--agent-step', default=None,
-                       choices=['prepare', 'generate'],
-                       help='Agent step: "prepare" exports analysis prompts for an agent; '
-                            '"generate" runs clip generation from agent-provided analysis. '
-                            'Uses the normal LLM provider (external LLM calls are still made).')
-
     args = parser.parse_args()
 
     if args.verbose:
@@ -764,8 +726,7 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
         use_background=args.use_background,
         generate_cover=not args.no_cover,
         language=args.language,
-        debug=args.debug,
-        agent_step=args.agent_step
+        debug=args.debug
     )
     
     def progress_callback(status: str, progress: float):

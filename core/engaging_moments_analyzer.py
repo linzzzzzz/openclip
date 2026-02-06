@@ -40,16 +40,14 @@ class EngagingMomentsAnalyzer:
         self.debug = debug
         
         # Initialize the appropriate LLM client
-        if self.provider == "agent":
-            self.llm_client = None  # No LLM client needed in agent mode
-        elif self.provider == "qwen":
+        if self.provider == "qwen":
             from core.llm.qwen_api_client import QwenAPIClient
             self.llm_client = QwenAPIClient(api_key)
         elif self.provider == "openrouter":
             from core.llm.openrouter_api_client import OpenRouterAPIClient
             self.llm_client = OpenRouterAPIClient(api_key)
         else:
-            raise ValueError(f"Unsupported provider: {provider}. Supported providers are 'qwen', 'openrouter', and 'agent'.")
+            raise ValueError(f"Unsupported provider: {provider}. Supported providers are 'qwen' and 'openrouter'.")
         
         # Load background information if enabled
         if self.use_background:

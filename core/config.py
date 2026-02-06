@@ -33,8 +33,7 @@ LLM_CONFIG: Dict[str, Dict[str, Any]] = {
 # Environment variable names for API keys
 API_KEY_ENV_VARS: Dict[str, str] = {
     "qwen": "QWEN_API_KEY",
-    "openrouter": "OPENROUTER_API_KEY",
-    "agent": ""
+    "openrouter": "OPENROUTER_API_KEY"
 }
 
 
