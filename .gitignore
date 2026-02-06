@@ -50,6 +50,8 @@ archive/
 docs/
 examples/
 tests/
+.claude/settings.json
+.claude/settings.local.json
 
 # Test results
 artistic_test_results/
