@@ -32,6 +32,7 @@
 - **背景上下文**：可选的主播/上下文信息以获得更好的分析
 - **双界面支持**：命令行界面和 Streamlit 网页界面，满足不同用户需求
 - **实时预览**：Streamlit 界面提供生成内容的实时预览
+- **AI Agent 技能**：内置 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 和 [TRAE](https://www.trae.ai/) agent 技能，用自然语言即可处理视频
 
 ## 📋 前置要求
 
@@ -108,7 +109,21 @@ uv run streamlit run streamlit_app.py
 
 **优势：** 无需记住命令行参数，提供可视化操作界面，适合所有用户。
 
-#### 选项 B：使用命令行界面
+#### 选项 B：使用 AI Agent 技能
+
+如果你使用 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 或 [TRAE](https://www.trae.ai/)，可以直接用自然语言处理视频，无需手动输入命令：
+
+```
+"帮我从这个视频里提取精彩片段：https://www.bilibili.com/video/BV1234567890"
+"处理一下 ~/Downloads/livestream.mp4，用霓虹发光风格"
+"分析这个 YouTube 视频的亮点并生成剪辑"
+```
+
+Agent 会自动调用内置技能，完成下载、转录、分析、剪辑和标题添加等全部流程。
+
+技能定义位于 `.claude/skills/` 和 `.trae/skills/` 目录下。
+
+#### 选项 C：使用命令行界面
 
 **处理 Bilibili 视频：**
 ```bash

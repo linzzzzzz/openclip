@@ -33,6 +33,7 @@ Perfect for content creators who want to extract highlights from long livestream
 - **Background Context**: Optional streamer/context information for better analysis
 - **Dual Interface Support**: Command-line interface and Streamlit web interface for different user needs
 - **Real-time Preview**: Streamlit interface provides real-time preview of generated content
+- **AI Agent Skill**: Built-in [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and [TRAE](https://www.trae.ai/) agent skills for processing videos with natural language
 
 ## 📋 Prerequisites
 
@@ -109,7 +110,21 @@ Once the app starts, open your browser and visit the displayed URL (typically `h
 
 **Advantages:** No need to remember command-line parameters, provides visual operation interface, suitable for all users.
 
-#### Option B: Using Command Line Interface
+#### Option B: Using AI Agent Skills
+
+If you use [Claude Code](https://docs.anthropic.com/en/docs/claude-code) or [TRAE](https://www.trae.ai/), you can process videos using natural language without manually typing commands:
+
+```
+"Extract highlights from this video: https://www.bilibili.com/video/BV1234567890"
+"Process ~/Downloads/livestream.mp4 with neon glow style"
+"Analyze this YouTube video for engaging moments and generate clips"
+```
+
+The agent automatically invokes the built-in skill to handle the full pipeline: downloading, transcription, analysis, clip generation, and title styling.
+
+Skill definitions are located in `.claude/skills/` and `.trae/skills/`.
+
+#### Option C: Using Command Line Interface
 
 **Process a Bilibili video:**
 ```bash
