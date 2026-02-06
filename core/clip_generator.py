@@ -203,7 +203,6 @@ class ClipGenerator:
         
         with open(summary_path, 'w', encoding='utf-8') as f:
             f.write("# 🔥 Top Engaging Moments - Video Clips\n\n")
-            f.write(f"**Analysis Date**: {data['analysis_info']['analysis_date']}\n")
             f.write(f"**Total Clips**: {len(clips_info)}\n\n")
             
             if 'analysis_summary' in data:

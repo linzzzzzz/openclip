@@ -13,6 +13,8 @@ from typing import Dict, Any, Optional, List
 from datetime import datetime
 import logging
 
+from core.engaging_moments_analyzer import EngagingMomentsAnalyzer
+
 logger = logging.getLogger(__name__)
 
 
@@ -591,3 +593,110 @@ async def find_existing_download(url: str,
             'video_info': {},
             'subtitle_path': ""
         }
+
+
+async def export_agent_prompts(result: 'ProcessingResult', 
+                              output_dir: Path, 
+                              use_background: bool = False, 
+                              language: str = "zh", 
+                              custom_prompt_file: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Export analysis prompts for agent step. Creates prompt files and a manifest
+    so an external agent can perform the analysis and write results.
+
+    Args:
+        result: ProcessingResult with transcript information
+        output_dir: Base output directory
+        use_background: Whether to include background information in analysis prompts
+        language: Language for output ("zh" for Chinese, "en" for English)
+        custom_prompt_file: Path to custom prompt file (optional)
+
+    Returns:
+        Dictionary with manifest data including file paths
+    """
+    import json as json_module
+
+    # Create a prompt-only analyzer (no API key needed)
+    analyzer = EngagingMomentsAnalyzer(
+        api_key=None,
+        provider="agent",
+        use_background=use_background,
+        language=language,
+        debug=False,
+        custom_prompt_file=custom_prompt_file
+    )
+
+    manifest = {
+        'mode': 'agent_analysis',
+        'source': str(result.video_path),
+        'prompts': [],
+        'aggregation_prompt': None,
+        'aggregation_output': None,
+    }
+
+    transcript_dir = None
+
+    if result.was_split and result.transcript_parts:
+        transcript_dir = Path(result.transcript_parts[0]).parent
+
+        for i, transcript_path in enumerate(result.transcript_parts):
+            part_name = f"part{i+1:02d}"
+            prompt_content = analyzer.build_part_analysis_prompt(transcript_path, part_name)
+
+            if not prompt_content:
+                logger.warning(f"Empty prompt for {part_name}, skipping")
+                continue
+
+            prompt_file = transcript_dir / f"agent_prompt_{part_name}.md"
+            prompt_file.write_text(prompt_content, encoding='utf-8')
+
+            expected_output = transcript_dir / f"highlights_{part_name}.json"
+
+            manifest['prompts'].append({
+                'part_name': part_name,
+                'prompt_file': str(prompt_file),
+                'transcript_file': str(transcript_path),
+                'expected_output': str(expected_output),
+            })
+            logger.info(f"   Exported prompt for {part_name}: {prompt_file}")
+
+        manifest['aggregation_output'] = str(transcript_dir / "top_engaging_moments.json")
+
+        # Note: aggregation prompt can't be fully built until per-part analysis is done.
+        # Export the aggregation prompt template for reference.
+        agg_prompt_template = analyzer.load_prompt_template("engaging_moments_agg_requirement")
+        agg_prompt_file = transcript_dir / "agent_prompt_aggregation.md"
+        agg_prompt_file.write_text(agg_prompt_template, encoding='utf-8')
+        manifest['aggregation_prompt'] = str(agg_prompt_file)
+        logger.info(f"   Exported aggregation prompt template: {agg_prompt_file}")
+
+    elif result.transcript_path:
+        transcript_dir = Path(result.transcript_path).parent
+        prompt_content = analyzer.build_part_analysis_prompt(result.transcript_path, "full_video")
+
+        if prompt_content:
+            prompt_file = transcript_dir / "agent_prompt_full_video.md"
+            prompt_file.write_text(prompt_content, encoding='utf-8')
+
+            expected_output = transcript_dir / "top_engaging_moments.json"
+
+            manifest['prompts'].append({
+                'part_name': 'full_video',
+                'prompt_file': str(prompt_file),
+                'transcript_file': str(result.transcript_path),
+                'expected_output': str(expected_output),
+            })
+            manifest['aggregation_output'] = str(expected_output)
+            logger.info(f"   Exported prompt for full_video: {prompt_file}")
+    else:
+        logger.warning("No transcripts available for agent prompt export")
+        return manifest
+
+    # Write manifest
+    manifest_dir = transcript_dir if transcript_dir else output_dir
+    manifest_path = manifest_dir / "agent_analysis_manifest.json"
+    with open(manifest_path, 'w', encoding='utf-8') as f:
+        json_module.dump(manifest, f, ensure_ascii=False, indent=2)
+    manifest['manifest_path'] = str(manifest_path)
+
+    return manifest

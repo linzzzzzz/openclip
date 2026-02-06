@@ -24,9 +24,6 @@ Return your response as a JSON object following this exact structure:
 
 ```json
 {
-  "analysis_info": {
-    "analysis_date": "2024-01-01"
-  },
   "top_engaging_moments": [
     {
       "rank": 1,

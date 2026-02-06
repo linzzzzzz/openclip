@@ -40,14 +40,16 @@ class EngagingMomentsAnalyzer:
         self.debug = debug
         
         # Initialize the appropriate LLM client
-        if self.provider == "qwen":
+        if self.provider == "agent":
+            self.llm_client = None  # No LLM client needed in agent mode
+        elif self.provider == "qwen":
             from core.llm.qwen_api_client import QwenAPIClient
             self.llm_client = QwenAPIClient(api_key)
         elif self.provider == "openrouter":
             from core.llm.openrouter_api_client import OpenRouterAPIClient
             self.llm_client = OpenRouterAPIClient(api_key)
         else:
-            raise ValueError(f"Unsupported provider: {provider}. Supported providers are 'qwen' and 'openrouter'.")
+            raise ValueError(f"Unsupported provider: {provider}. Supported providers are 'qwen', 'openrouter', and 'agent'.")
         
         # Load background information if enabled
         if self.use_background:
@@ -232,50 +234,96 @@ class EngagingMomentsAnalyzer:
         
         return '\n'.join(transcript_lines)
     
-    async def analyze_part_for_engaging_moments(self, srt_path: str, part_name: str) -> Dict[str, Any]:
+    def build_part_analysis_prompt(self, srt_path: str, part_name: str) -> str:
         """
-        Analyze a single video part for engaging moments
-        
+        Build the analysis prompt for a video part without calling the LLM.
+
         Args:
             srt_path: Path to SRT file
             part_name: Name of the video part (e.g., "part01")
-            
+
+        Returns:
+            The complete prompt string, or empty string if no entries found
+        """
+        entries = self.parse_srt_file(srt_path)
+        if not entries:
+            return ""
+
+        transcript_context = self.create_transcript_context(entries)
+        prompt_template = self.load_prompt_template("engaging_moments_part_requirement")
+
+        prompt_parts = []
+        if self.use_background and self.background_content:
+            prompt_parts.append("## Additional Background Information\n\n")
+            prompt_parts.append(self.background_content)
+            prompt_parts.append("\n\n")
+
+        prompt_parts.append(prompt_template)
+        prompt_parts.append(f"\n\n## Transcript Data for {part_name}\n\n")
+        prompt_parts.append(transcript_context)
+        prompt_parts.append("\n\nPlease analyze this transcript and identify engaging moments following the requirements above.")
+
+        return "".join(prompt_parts)
+
+    def build_aggregation_prompt(self, highlights_files: List[str]) -> str:
+        """
+        Build the aggregation prompt from highlights files without calling the LLM.
+
+        Args:
+            highlights_files: List of paths to highlights JSON files
+
+        Returns:
+            The complete aggregation prompt string
+        """
+        all_moments = []
+        for file_path in highlights_files:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                for moment in data.get('engaging_moments', []):
+                    moment['source_part'] = data.get('video_part', 'unknown')
+                    all_moments.append(moment)
+            except Exception as e:
+                logger.error(f"Error loading highlights file {file_path}: {e}")
+
+        moments_context = self._create_moments_context(all_moments)
+        prompt_template = self.load_prompt_template("engaging_moments_agg_requirement")
+
+        prompt_parts = []
+        if self.use_background and self.background_content:
+            prompt_parts.append("## Background Information\n\n")
+            prompt_parts.append(self.background_content)
+            prompt_parts.append("\n\n")
+
+        prompt_parts.append(prompt_template)
+        prompt_parts.append(f"\n\n## All Engaging Moments Data\n\n")
+        prompt_parts.append(moments_context)
+        prompt_parts.append("\n\nPlease select and rank the top 5 most engaging moments following the requirements above.")
+
+        return "".join(prompt_parts)
+
+    async def analyze_part_for_engaging_moments(self, srt_path: str, part_name: str) -> Dict[str, Any]:
+        """
+        Analyze a single video part for engaging moments
+
+        Args:
+            srt_path: Path to SRT file
+            part_name: Name of the video part (e.g., "part01")
+
         Returns:
             Dictionary with engaging moments analysis
         """
         logger.info(f"🔍 Analyzing {part_name} for engaging moments...")
-        
+
         # Parse SRT file
         entries = self.parse_srt_file(srt_path)
         if not entries:
             logger.warning(f"No entries found in {srt_path}")
             return self._create_empty_result(part_name)
-        
-        # Create transcript context
-        transcript_context = self.create_transcript_context(entries)
-        
-        # Load prompt template
-        prompt_template = self.load_prompt_template("engaging_moments_part_requirement")
-        
-        # Build analysis prompt with optional background information
-        prompt_parts = []
-        
-        # Add background information if enabled
-        if self.use_background and self.background_content:
-            prompt_parts.append("## Additional Background Information\n\n")
-            prompt_parts.append(self.background_content)
-            prompt_parts.append("\n\n")
-        
-        # Add main prompt template
-        prompt_parts.append(prompt_template)
-        
-        # Add transcript data
-        prompt_parts.append(f"\n\n## Transcript Data for {part_name}\n\n")
-        prompt_parts.append(transcript_context)
-        prompt_parts.append("\n\nPlease analyze this transcript and identify engaging moments following the requirements above.")
-        
-        analysis_prompt = "".join(prompt_parts)
-        
+
+        # Build the analysis prompt
+        analysis_prompt = self.build_part_analysis_prompt(srt_path, part_name)
+
         # Export debug prompt if enabled
         self._export_debug_prompt(analysis_prompt, "part_analysis", part_name)
         
@@ -524,50 +572,25 @@ Please fix the JSON and return ONLY the valid JSON, no explanations:
             Dictionary with top 5 engaging moments
         """
         logger.info("🔄 Aggregating top engaging moments...")
-        
-        # Load all highlights
+
+        # Check if any moments exist
         all_moments = []
         for file_path in highlights_files:
             try:
                 with open(file_path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                    
                 for moment in data.get('engaging_moments', []):
-                    moment['source_part'] = data.get('video_part', 'unknown')
                     all_moments.append(moment)
-                    
             except Exception as e:
                 logger.error(f"Error loading highlights file {file_path}: {e}")
-        
+
         if not all_moments:
             logger.warning("No engaging moments found to aggregate")
             return self._create_empty_aggregation_result()
-        
-        # Create aggregation context
-        moments_context = self._create_moments_context(all_moments)
-        
-        # Load aggregation prompt
-        prompt_template = self.load_prompt_template("engaging_moments_agg_requirement")
-        
-        # Build aggregation prompt with optional background information
-        prompt_parts = []
-        
-        # Add background information if enabled
-        if self.use_background and self.background_content:
-            prompt_parts.append("## Background Information\n\n")
-            prompt_parts.append(self.background_content)
-            prompt_parts.append("\n\n")
-        
-        # Add main prompt template
-        prompt_parts.append(prompt_template)
-        
-        # Add moments data
-        prompt_parts.append(f"\n\n## All Engaging Moments Data\n\n")
-        prompt_parts.append(moments_context)
-        prompt_parts.append("\n\nPlease select and rank the top 5 most engaging moments following the requirements above.")
-        
-        aggregation_prompt = "".join(prompt_parts)
-        
+
+        # Build aggregation prompt using shared method
+        aggregation_prompt = self.build_aggregation_prompt(highlights_files)
+
         # Export debug prompt if enabled
         self._export_debug_prompt(aggregation_prompt, "aggregation")
         
@@ -652,9 +675,6 @@ You are a JSON repair expert. I have a malformed JSON response for video moment 
 
 The response should follow this structure:
 {{
-  "analysis_info": {{
-    "analysis_date": "2024-01-01"
-  }},
   "top_engaging_moments": [
     {{
       "rank": 1,
@@ -867,9 +887,6 @@ Moment {i}:
                 moment['rank'] = i + 1
         
         return {
-            "analysis_info": {
-                "analysis_date": datetime.now().strftime("%Y-%m-%d")
-            },
             "top_engaging_moments": top_moments,
             "total_moments": len(top_moments),
             "analysis_timestamp": datetime.now().isoformat() + 'Z',

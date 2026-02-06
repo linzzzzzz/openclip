@@ -43,7 +43,7 @@ class VideoOrchestrator:
     Orchestrates video download, splitting, and transcript generation
     """
     
-    def __init__(self, 
+    def __init__(self,
                 output_dir: str = "processed_videos",
                 max_duration_minutes: float = 20.0,
                 whisper_model: str = "base",
@@ -58,10 +58,11 @@ class VideoOrchestrator:
                 generate_cover: bool = True,
                 language: str = "zh",
                 debug: bool = False,
-                custom_prompt_file: Optional[str] = None):
+                custom_prompt_file: Optional[str] = None,
+                agent_step: Optional[str] = None):
         """
         Initialize the video orchestrator
-        
+
         Args:
             output_dir: Directory for all processed outputs
             max_duration_minutes: Maximum duration before splitting (default 20 minutes)
@@ -78,6 +79,7 @@ class VideoOrchestrator:
             language: Language for output ("zh" for Chinese, "en" for English)
             debug: Enable debug mode to export full prompts sent to LLM
             custom_prompt_file: Path to custom prompt file (optional)
+            agent_step: Agent step ("prepare" or "generate"), or None for normal operation
         """
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
@@ -85,6 +87,17 @@ class VideoOrchestrator:
         self.debug = debug
         self.llm_provider = llm_provider.lower()
         self.custom_prompt_file = custom_prompt_file
+        self.agent_step = agent_step
+        self.use_background = use_background
+
+        # Agent mode overrides
+        if self.agent_step == 'prepare':
+            skip_analysis = True
+            generate_clips = False
+            add_titles = False
+            generate_cover = False
+        elif self.agent_step == 'generate':
+            skip_analysis = True
         
         # Initialize processing components
         self.downloader = VideoDownloader(
@@ -246,6 +259,26 @@ class VideoOrchestrator:
                 if transcript_result['source'] == 'whisper':
                     result.transcript_parts = transcript_result['transcript_parts']
             
+            # Agent mode: export prompts and stop
+            if self.agent_step == 'prepare':
+                logger.info("🤖 Step 4: Exporting analysis prompts for agent step...")
+                if progress_callback:
+                    progress_callback("Exporting analysis prompts for agent...", 80)
+                from core.video_utils import export_agent_prompts
+                manifest = await export_agent_prompts(
+                    result,
+                    self.output_dir,
+                    use_background=self.use_background,
+                    language=self.language,
+                    custom_prompt_file=self.custom_prompt_file
+                )
+                manifest_path = manifest.get('manifest_path', 'unknown')
+                logger.info(f"📋 Agent manifest written to: {manifest_path}")
+                logger.info(f"📝 Exported {len(manifest['prompts'])} prompt(s)")
+                logger.info("🛑 Agent step prepare complete. Analyze prompts and re-run with --agent-step generate")
+                result.success = True
+                return result
+
             # Step 4: Analyze engaging moments (if not skipped and analyzer available)
             engaging_result = None
             if self.engaging_moments_analyzer and not self.skip_analysis:
@@ -416,8 +449,10 @@ class VideoOrchestrator:
         except Exception as e:
             logger.error(f"Error finding existing analysis: {e}")
             return None
-    
-    async def _analyze_engaging_moments(self, 
+
+
+
+    async def _analyze_engaging_moments(self,
                                       result: ProcessingResult,
                                       progress_callback: Optional[Callable[[str, float], None]]) -> Dict[str, Any]:
         """
@@ -654,7 +689,7 @@ Examples:
   
   # Specify output directory
   python video_orchestrator.py -o "my_outputs" "https://www.bilibili.com/video/BV1234567890"
-  
+
 Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your selected LLM provider
         """
     )
@@ -700,15 +735,20 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
                        help='Enable verbose logging')
     parser.add_argument('--debug', action='store_true',
                        help='Enable debug mode to export full prompts sent to LLM')
-    
+    parser.add_argument('--agent-step', default=None,
+                       choices=['prepare', 'generate'],
+                       help='Agent step: "prepare" exports analysis prompts for an agent; '
+                            '"generate" runs clip generation from agent-provided analysis. '
+                            'Uses the normal LLM provider (external LLM calls are still made).')
+
     args = parser.parse_args()
-    
+
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
-    
-    # Get API key from environment based on selected provider
+
+    # Get API key from environment
     api_key = os.getenv(API_KEY_ENV_VARS.get(args.llm_provider, "QWEN_API_KEY"))
-    
+
     # Initialize orchestrator
     orchestrator = VideoOrchestrator(
         output_dir=args.output,
@@ -724,7 +764,8 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
         use_background=args.use_background,
         generate_cover=not args.no_cover,
         language=args.language,
-        debug=args.debug
+        debug=args.debug,
+        agent_step=args.agent_step
     )
     
     def progress_callback(status: str, progress: float):

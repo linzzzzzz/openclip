@@ -607,7 +607,6 @@ class TitleAdder:
         
         with open(readme_path, 'w', encoding='utf-8') as f:
             f.write(f"# 🎬 Engaging Clips with Artistic Titles\n\n")
-            f.write(f"**Analysis Date**: {data['analysis_info']['analysis_date']}\n")
             f.write(f"**Artistic Style**: {artistic_style}\n")
             f.write(f"**Total Clips**: {len(processed_clips)}\n\n")
             
