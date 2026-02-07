@@ -88,8 +88,9 @@ class VideoOrchestrator:
         self.use_background = use_background
 
         # Initialize processing components
+        # Note: Downloader and splitter will be configured per-video later
         self.downloader = VideoDownloader(
-            output_dir=str(self.output_dir / "downloads"),
+            output_dir=str(self.output_dir),
             browser=browser
         )
         self.video_splitter = VideoSplitter(max_duration_minutes, self.output_dir)
@@ -123,20 +124,23 @@ class VideoOrchestrator:
         self.add_titles_enabled = add_titles
         self.artistic_style = artistic_style
         
-        # Set up clip directories under output_dir
-        self.clips_dir = self.output_dir / "clips"
-        self.clips_with_titles_dir = self.output_dir / "clips_with_titles"
+        # Initialize clip generation and title adding components
+        # These will be configured with video-specific directories later
+        self.clips_dir = None
+        self.clips_with_titles_dir = None
         
         if self.generate_clips_enabled:
-            self.clip_generator = ClipGenerator(output_dir=str(self.clips_dir))
-            logger.info(f"🎬 Clip generation: enabled (output: {self.clips_dir})")
+            # Initialize with temporary dir, will be updated later
+            self.clip_generator = ClipGenerator(output_dir=str(self.output_dir))
+            logger.info(f"🎬 Clip generation: enabled")
         else:
             self.clip_generator = None
             logger.info("🎬 Clip generation: disabled")
         
         if self.add_titles_enabled:
-            self.title_adder = TitleAdder(output_dir=str(self.clips_with_titles_dir))
-            logger.info(f"🎨 Title adding: enabled (style: {artistic_style}, output: {self.clips_with_titles_dir})")
+            # Initialize with temporary dir, will be updated later
+            self.title_adder = TitleAdder(output_dir=str(self.output_dir))
+            logger.info(f"🎨 Title adding: enabled (style: {artistic_style})")
         else:
             self.title_adder = None
             logger.info("🎨 Title adding: disabled")
@@ -196,10 +200,10 @@ class VideoOrchestrator:
                     # Step 1: Find existing downloaded video
                     logger.info("🔍 Step 1: Looking for existing downloaded video...")
                     download_result = await self._find_existing_download(source, progress_callback)
-                    
+
                     if not download_result['video_path']:
                         raise Exception("No existing download found. Remove --skip-download to download the video.")
-                    
+
                     result.video_path = download_result['video_path']
                     result.video_info = download_result['video_info']
                     subtitle_path = download_result['subtitle_path']
@@ -207,13 +211,21 @@ class VideoOrchestrator:
                     # Step 1: Download video and get info
                     logger.info("📥 Step 1: Downloading video...")
                     download_result = await self._download_video(source, custom_filename, progress_callback)
-                    
+
                     if not download_result['video_path']:
                         raise Exception("Video download failed")
-                    
+
                     result.video_path = download_result['video_path']
                     result.video_info = download_result['video_info']
                     subtitle_path = download_result['subtitle_path']
+
+            # Compute video_root_dir from video info for use throughout the pipeline
+            video_name = result.video_info.get('title', 'video')
+            safe_video_name = re.sub(r'[^\w\s-]', '', video_name)
+            safe_video_name = re.sub(r'[\s\-]+', '_', safe_video_name)
+            safe_video_name = re.sub(r'_+', '_', safe_video_name).strip('_')
+            video_root_dir = self.output_dir / safe_video_name
+            video_root_dir.mkdir(parents=True, exist_ok=True)
             
             # Step 2: Check duration and split if needed
             logger.info("⏱️  Step 2: Checking video duration...")
@@ -221,10 +233,13 @@ class VideoOrchestrator:
             
             if needs_splitting:
                 logger.info(f"🔧 Video duration > 20 minutes, splitting required")
+                splits_dir = video_root_dir / "splits"
+                splits_dir.mkdir(parents=True, exist_ok=True)
                 split_result = await self.video_splitter.split_video_async(
-                    result.video_path, 
+                    result.video_path,
                     subtitle_path,
-                    progress_callback
+                    progress_callback,
+                    splits_dir=splits_dir
                 )
                 result.was_split = True
                 result.video_parts = split_result['video_parts']
@@ -273,16 +288,12 @@ class VideoOrchestrator:
                 else:
                     video_dir = Path(result.video_path).parent
                 
-                # Create subfolder based on video name
-                video_name = result.video_info.get('title', 'video')
-                # Sanitize video name for folder
-                safe_video_name = re.sub(r'[^\w\s-]', '', video_name)
-                safe_video_name = re.sub(r'[\s\-]+', '_', safe_video_name)
-                safe_video_name = re.sub(r'_+', '_', safe_video_name).strip('_')
-                
-                # Create video-specific subfolder
-                video_clips_dir = self.clips_dir / safe_video_name
+                # Create video-specific subfolders
+                video_clips_dir = video_root_dir / "clips"
                 video_clips_dir.mkdir(parents=True, exist_ok=True)
+                
+                video_clips_with_titles_dir = video_root_dir / "clips_with_titles"
+                video_clips_with_titles_dir.mkdir(parents=True, exist_ok=True)
                 
                 # Initialize video_titles_dir to video_clips_dir as default (for cover generation)
                 video_titles_dir = video_clips_dir
@@ -302,12 +313,8 @@ class VideoOrchestrator:
                     if progress_callback:
                         progress_callback("Adding artistic titles...", 92)
                     
-                    # Create video-specific subfolder for titles
-                    video_titles_dir = self.clips_with_titles_dir / safe_video_name
-                    video_titles_dir.mkdir(parents=True, exist_ok=True)
-                    
                     # Update title adder output dir
-                    self.title_adder.output_dir = video_titles_dir
+                    self.title_adder.output_dir = video_clips_with_titles_dir
                     
                     title_result = self.title_adder.add_titles_to_clips(
                         clip_result['output_dir'],
@@ -372,6 +379,29 @@ class VideoOrchestrator:
                             custom_filename: Optional[str],
                             progress_callback: Optional[Callable[[str, float], None]]) -> dict:
         """Download video and subtitles using download processor"""
+        # Get video info first to determine video name
+        video_info = await self.downloader.get_video_info(url)
+        
+        # Create video-specific directory structure
+        video_name = video_info.get('title', 'video')
+        safe_video_name = re.sub(r'[^\w\s-]', '', video_name)
+        safe_video_name = re.sub(r'[\s\-]+', '_', safe_video_name)
+        safe_video_name = re.sub(r'_+', '_', safe_video_name).strip('_')
+        
+        video_root_dir = self.output_dir / safe_video_name
+        video_root_dir.mkdir(parents=True, exist_ok=True)
+        
+        downloads_dir = video_root_dir / "downloads"
+        downloads_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Update downloader output dir to use the downloads subdirectory
+        self.downloader.output_dir = str(downloads_dir)
+        if hasattr(self.downloader, 'bilibili_downloader') and self.downloader.bilibili_downloader:
+            self.downloader.bilibili_downloader.base_output_dir = downloads_dir
+        if hasattr(self.downloader, 'youtube_downloader') and self.downloader.youtube_downloader:
+            self.downloader.youtube_downloader.base_output_dir = downloads_dir
+        
+        # Download video
         return await self.download_processor.download_video(url, custom_filename, progress_callback)
     
     async def _find_existing_download(self,

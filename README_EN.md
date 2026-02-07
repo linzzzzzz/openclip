@@ -255,34 +255,31 @@ After processing, your output directory will contain:
 
 ```
 processed_videos/
-├── downloads/                          # Downloaded videos
-│   └── BV1234567890_video_title/
-│       ├── video_title.mp4            # Original video
-│       ├── video_title.srt            # Subtitles
-│       ├── video_title.info.json      # Video metadata
-│       └── video_title.jpg            # Thumbnail
-│
-├── splits/                             # Split video parts (if >20 min)
-│   └── video_title_split/
-│       ├── video_title_part01.mp4     # Video part 1
-│       ├── video_title_part01.srt     # Subtitles part 1
-│       ├── video_title_part02.mp4     # Video part 2
-│       ├── video_title_part02.srt     # Subtitles part 2
-│       ├── highlights_part01.json     # AI analysis part 1
-│       ├── highlights_part02.json     # AI analysis part 2
-│       └── top_engaging_moments.json  # Top 5 aggregated moments
-│
-├── clips/                              # Generated clips
-│   └── video_title/
-│       ├── rank_01_moment_title.mp4   # Clip #1
-│       ├── rank_02_moment_title.mp4   # Clip #2
-│       ├── rank_03_moment_title.mp4   # Clip #3
-│       ├── rank_04_moment_title.mp4   # Clip #4
-│       ├── rank_05_moment_title.mp4   # Clip #5
-│       └── engaging_moments_summary.md # Summary
-│
-└── clips_with_titles/                  # Clips with artistic titles
-    └── video_title/
+└── {video_name}/                        # Video-specific root directory
+    ├── downloads/                       # Downloaded videos and subtitles
+    │   ├── video.mp4                    # Original video
+    │   ├── video.srt                    # Subtitles
+    │   ├── video.info.json              # Video metadata
+    │   └── video.jpg                    # Thumbnail
+    │
+    ├── splits/                          # Split video parts (if >20 min)
+    │   ├── {video_name}_part01.mp4      # Video part 1
+    │   ├── {video_name}_part01.srt      # Subtitles part 1
+    │   ├── {video_name}_part02.mp4      # Video part 2
+    │   ├── {video_name}_part02.srt      # Subtitles part 2
+    │   ├── highlights_part01.json       # AI analysis part 1
+    │   ├── highlights_part02.json       # AI analysis part 2
+    │   └── top_engaging_moments.json    # Top 5 aggregated moments
+    │
+    ├── clips/                           # Generated clips
+    │   ├── rank_01_moment_title.mp4     # Clip #1
+    │   ├── rank_02_moment_title.mp4     # Clip #2
+    │   ├── rank_03_moment_title.mp4     # Clip #3
+    │   ├── rank_04_moment_title.mp4     # Clip #4
+    │   ├── rank_05_moment_title.mp4     # Clip #5
+    │   └── engaging_moments_summary.md  # Summary
+    │
+    └── clips_with_titles/               # Clips with artistic titles
         ├── artistic_fire_flame_rank_01_moment_title.mp4
         ├── artistic_fire_flame_rank_02_moment_title.mp4
         ├── artistic_fire_flame_rank_03_moment_title.mp4

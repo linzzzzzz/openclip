@@ -207,19 +207,30 @@ class ImprovedBilibiliDownloader:
         Returns:
             Path to the created video directory
         """
-        # Create directory name with video ID and sanitized title
-        safe_title = self._sanitize_filename(video_info.title)
-        dir_name = f"{video_info.bvid}_{safe_title}"
-        
-        # Limit directory name length
-        if len(dir_name) > 150:
-            dir_name = f"{video_info.bvid}_{safe_title[:100]}"
-        
-        video_dir = self.base_output_dir / dir_name
-        video_dir.mkdir(exist_ok=True)
-        
-        logger.info(f"📁 Created video directory: {video_dir.name}")
-        return video_dir
+        # When base_output_dir is already a video-specific directory
+        # (created by orchestrator), just use it directly
+        # Check if we're already in a video-specific directory
+        # by looking at the parent structure
+        if self.base_output_dir.name != "processed_videos":
+            # base_output_dir is already a video-specific directory
+            # just ensure it exists
+            self.base_output_dir.mkdir(exist_ok=True)
+            logger.info(f"📁 Using existing video directory: {self.base_output_dir.name}")
+            return self.base_output_dir
+        else:
+            # Create directory name with video ID and sanitized title
+            safe_title = self._sanitize_filename(video_info.title)
+            dir_name = f"{video_info.bvid}_{safe_title}"
+            
+            # Limit directory name length
+            if len(dir_name) > 150:
+                dir_name = f"{video_info.bvid}_{safe_title[:100]}"
+            
+            video_dir = self.base_output_dir / dir_name
+            video_dir.mkdir(exist_ok=True)
+            
+            logger.info(f"📁 Created video directory: {video_dir.name}")
+            return video_dir
     
     async def get_video_info(self, url: str) -> BilibiliVideoInfo:
         """Extract video information without downloading"""

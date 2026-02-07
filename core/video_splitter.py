@@ -196,46 +196,45 @@ class VideoSplitter:
         
         # Get base filename without extension
         base_name = os.path.splitext(os.path.basename(video_path))[0]
-        
-        # Create project-specific output directory
-        project_output_dir = os.path.join(output_dir, f"{base_name}_split")
-        os.makedirs(project_output_dir, exist_ok=True)
-        
-        print(f"📁 Output directory: {project_output_dir}")
+
+        # Output directly to the provided output_dir
+        os.makedirs(output_dir, exist_ok=True)
+
+        print(f"📁 Output directory: {output_dir}")
         print(f"🎬 Will create {len(split_points)} parts")
-        
+
         success_count = 0
-        
+
         for i, (start_time, end_time) in enumerate(split_points, 1):
             duration = end_time - start_time
-            
+
             print(f"\n--- Part {i}/{len(split_points)} ---")
             print(f"⏰ Time: {self.seconds_to_time(start_time)} - {self.seconds_to_time(end_time)}")
             print(f"⏱️  Duration: {duration:.1f} seconds")
-            
+
             # Create video part
-            video_output = os.path.join(project_output_dir, f"{base_name}_part{i:02d}.mp4")
+            video_output = os.path.join(output_dir, f"{base_name}_part{i:02d}.mp4")
             video_success = self.split_video_ffmpeg(video_path, start_time, duration, video_output)
-            
+
             # Find subtitle segments for this time range
             start_idx = 0
             end_idx = len(self.subtitles) - 1
-            
+
             for j, subtitle in enumerate(self.subtitles):
                 subtitle_start = self.time_to_seconds(subtitle.start_time)
                 if subtitle_start >= start_time:
                     start_idx = j
                     break
-            
+
             for j, subtitle in enumerate(self.subtitles):
                 subtitle_end = self.time_to_seconds(subtitle.end_time)
                 if subtitle_end <= end_time:
                     end_idx = j
-            
+
             # Create subtitle part
             if start_idx <= end_idx:
                 subtitle_output = self.create_subtitle_part(
-                    start_idx, end_idx, i, project_output_dir, base_name, start_time
+                    start_idx, end_idx, i, output_dir, base_name, start_time
                 )
                 print(f"📝 Created subtitle part: {os.path.basename(subtitle_output)}")
             
@@ -260,32 +259,31 @@ class VideoSplitter:
         
         # Get base filename without extension
         base_name = os.path.splitext(os.path.basename(video_path))[0]
-        
-        # Create project-specific output directory
-        project_output_dir = os.path.join(output_dir, f"{base_name}_split")
-        os.makedirs(project_output_dir, exist_ok=True)
-        
-        print(f"📁 Output directory: {project_output_dir}")
+
+        # Output directly to the provided output_dir
+        os.makedirs(output_dir, exist_ok=True)
+
+        print(f"📁 Output directory: {output_dir}")
         print(f"🎬 Will create {len(split_points)} parts")
-        
+
         success_count = 0
-        
+
         for i, (start_time, end_time, start_idx, end_idx) in enumerate(split_points, 1):
             duration = end_time - start_time
             segment_count = end_idx - start_idx + 1
-            
+
             print(f"\n--- Part {i}/{len(split_points)} ---")
             print(f"📝 Subtitles: {start_idx + 1}-{end_idx + 1} ({segment_count} segments)")
             print(f"⏰ Time: {self.seconds_to_time(start_time)} - {self.seconds_to_time(end_time)}")
             print(f"⏱️  Duration: {duration:.1f} seconds")
-            
+
             # Create video part
-            video_output = os.path.join(project_output_dir, f"{base_name}_part{i:02d}.mp4")
+            video_output = os.path.join(output_dir, f"{base_name}_part{i:02d}.mp4")
             video_success = self.split_video_ffmpeg(video_path, start_time, duration, video_output)
-            
+
             # Create subtitle part
             subtitle_output = self.create_subtitle_part(
-                start_idx, end_idx, i, project_output_dir, base_name, start_time
+                start_idx, end_idx, i, output_dir, base_name, start_time
             )
             print(f"📝 Created subtitle part: {os.path.basename(subtitle_output)}")
             
@@ -309,32 +307,44 @@ class VideoSplitter:
             logger.info(f"📏 Video duration: {duration/60:.1f} minutes (within {self.max_duration_minutes} min limit)")
             return False
     
-    async def split_video_async(self, 
-                               video_path: str, 
+    async def split_video_async(self,
+                               video_path: str,
                                subtitle_path: str,
-                               progress_callback: Optional[Callable[[str, float], None]]) -> Dict[str, List[str]]:
-        """Async version of video splitting with progress tracking"""
-        
+                               progress_callback: Optional[Callable[[str, float], None]],
+                               splits_dir: Optional[Path] = None) -> Dict[str, List[str]]:
+        """Async version of video splitting with progress tracking
+
+        Args:
+            video_path: Path to the video file
+            subtitle_path: Path to the subtitle file
+            progress_callback: Progress callback function
+            splits_dir: Explicit output directory for split files. If None, falls back to
+                       self.output_dir / base_name / "splits"
+        """
+
         if progress_callback:
             progress_callback("Splitting video into parts...", 35)
-        
-        # Create splits directory
-        splits_dir = self.output_dir / "splits"
-        
+
+        base_name = Path(video_path).stem
+
+        # Use explicit splits_dir if provided, otherwise fall back to default
+        if splits_dir is None:
+            splits_dir = self.output_dir / base_name / "splits"
+        splits_dir.mkdir(parents=True, exist_ok=True)
+
         # Use existing split_by_time_duration method
         success = self.split_by_time_duration(
-            video_path, 
-            subtitle_path, 
+            video_path,
+            subtitle_path,
             self.max_duration_minutes,
             str(splits_dir)
         )
-        
+
         if not success:
             raise Exception("Video splitting failed")
-        
+
         # Find all created parts using utility function
         from core.video_utils import VideoFileManager
-        base_name = Path(video_path).stem
         video_parts, transcript_parts = VideoFileManager.find_video_parts(splits_dir, base_name)
         
         logger.info(f"✅ Split into {len(video_parts)} video parts and {len(transcript_parts)} transcript parts")

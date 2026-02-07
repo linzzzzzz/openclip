@@ -254,34 +254,31 @@ uv run python video_orchestrator.py --browser firefox "VIDEO_URL"
 
 ```
 processed_videos/
-├── downloads/                          # 下载的视频
-│   └── BV1234567890_video_title/
-│       ├── video_title.mp4            # 原始视频
-│       ├── video_title.srt            # 字幕
-│       ├── video_title.info.json      # 视频元数据
-│       └── video_title.jpg            # 缩略图
-│
-├── splits/                             # 分割的视频片段（如果 >20分钟）
-│   └── video_title_split/
-│       ├── video_title_part01.mp4     # 视频片段1
-│       ├── video_title_part01.srt     # 字幕片段1
-│       ├── video_title_part02.mp4     # 视频片段2
-│       ├── video_title_part02.srt     # 字幕片段2
-│       ├── highlights_part01.json     # AI分析片段1
-│       ├── highlights_part02.json     # AI分析片段2
-│       └── top_engaging_moments.json  # 前5个汇总时刻
-│
-├── clips/                              # 生成的剪辑
-│   └── video_title/
-│       ├── rank_01_moment_title.mp4   # 剪辑 #1
-│       ├── rank_02_moment_title.mp4   # 剪辑 #2
-│       ├── rank_03_moment_title.mp4   # 剪辑 #3
-│       ├── rank_04_moment_title.mp4   # 剪辑 #4
-│       ├── rank_05_moment_title.mp4   # 剪辑 #5
-│       └── engaging_moments_summary.md # 摘要
-│
-└── clips_with_titles/                  # 带艺术字幕的剪辑
-    └── video_title/
+└── {video_name}/                        # 视频专用根目录
+    ├── downloads/                       # 下载的视频和字幕
+    │   ├── video.mp4                    # 原始视频
+    │   ├── video.srt                    # 字幕
+    │   ├── video.info.json              # 视频元数据
+    │   └── video.jpg                    # 缩略图
+    │
+    ├── splits/                          # 分割的视频片段（如果 >20分钟）
+    │   ├── {video_name}_part01.mp4      # 视频片段1
+    │   ├── {video_name}_part01.srt      # 字幕片段1
+    │   ├── {video_name}_part02.mp4      # 视频片段2
+    │   ├── {video_name}_part02.srt      # 字幕片段2
+    │   ├── highlights_part01.json       # AI分析片段1
+    │   ├── highlights_part02.json       # AI分析片段2
+    │   └── top_engaging_moments.json    # 前5个汇总时刻
+    │
+    ├── clips/                           # 生成的剪辑
+    │   ├── rank_01_moment_title.mp4     # 剪辑 #1
+    │   ├── rank_02_moment_title.mp4     # 剪辑 #2
+    │   ├── rank_03_moment_title.mp4     # 剪辑 #3
+    │   ├── rank_04_moment_title.mp4     # 剪辑 #4
+    │   ├── rank_05_moment_title.mp4     # 剪辑 #5
+    │   └── engaging_moments_summary.md  # 摘要
+    │
+    └── clips_with_titles/               # 带艺术字幕的剪辑
         ├── artistic_fire_flame_rank_01_moment_title.mp4
         ├── artistic_fire_flame_rank_02_moment_title.mp4
         ├── artistic_fire_flame_rank_03_moment_title.mp4

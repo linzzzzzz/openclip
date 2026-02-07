@@ -5,6 +5,7 @@ Common utility functions for video file handling, metadata extraction, and file 
 """
 
 import os
+import re
 import json
 import asyncio
 import shutil
@@ -266,15 +267,28 @@ class VideoFileManager:
     """Manages video file operations like copying, organizing, and finding files"""
     
     @staticmethod
-    def copy_video_to_output(video_path: str, output_dir: Path) -> Path:
+    def copy_video_to_output(video_path: str, output_dir: Path, video_name: Optional[str] = None) -> Path:
         """Copy video file to output directory"""
         video_file = Path(video_path)
         if not video_file.exists():
             raise FileNotFoundError(f"Video file not found: {video_path}")
         
-        # Create local videos directory
-        local_videos_dir = output_dir / "local_videos"
-        local_videos_dir.mkdir(exist_ok=True)
+        # Use video name or filename stem if not provided
+        if not video_name:
+            video_name = video_file.stem
+        
+        # Sanitize video name for directory
+        safe_video_name = re.sub(r'[^\w\s-]', '', video_name)
+        safe_video_name = re.sub(r'[\s\-]+', '_', safe_video_name)
+        safe_video_name = re.sub(r'_+', '_', safe_video_name).strip('_')
+        
+        # Create video-specific directory structure
+        video_root_dir = output_dir / safe_video_name
+        video_root_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Create local videos directory under video-specific root
+        local_videos_dir = video_root_dir / "local_videos"
+        local_videos_dir.mkdir(parents=True, exist_ok=True)
         
         processed_video_path = local_videos_dir / video_file.name
         
@@ -288,7 +302,7 @@ class VideoFileManager:
         return processed_video_path
     
     @staticmethod
-    def find_existing_subtitle(video_path: str, output_dir: Path) -> str:
+    def find_existing_subtitle(video_path: str, output_dir: Path, video_name: Optional[str] = None) -> str:
         """Find existing subtitle file for a video"""
         video_file = Path(video_path)
         subtitle_path = ''
@@ -296,8 +310,18 @@ class VideoFileManager:
         for ext in VideoFileValidator.SUBTITLE_EXTENSIONS:
             potential_subtitle = video_file.parent / f"{video_file.stem}{ext}"
             if potential_subtitle.exists():
+                # Use video name or filename stem if not provided
+                if not video_name:
+                    video_name = video_file.stem
+                
+                # Sanitize video name for directory
+                safe_video_name = re.sub(r'[^\w\s-]', '', video_name)
+                safe_video_name = re.sub(r'[\s\-]+', '_', safe_video_name)
+                safe_video_name = re.sub(r'_+', '_', safe_video_name).strip('_')
+                
                 # Copy subtitle to output directory
-                subtitle_dest = output_dir / "local_videos" / f"{video_file.stem}{ext}"
+                subtitle_dest = output_dir / safe_video_name / "local_videos" / f"{video_file.stem}{ext}"
+                subtitle_dest.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(potential_subtitle, subtitle_dest)
                 subtitle_path = str(subtitle_dest)
                 logger.info(f"📝 Found existing subtitle: {potential_subtitle.name}")
@@ -355,15 +379,13 @@ class VideoFileManager:
     @staticmethod
     def find_video_parts(splits_dir: Path, base_name: str) -> tuple[List[str], List[str]]:
         """Find all video and transcript parts after splitting"""
-        split_output_dir = splits_dir / f"{base_name}_split"
-        
         video_parts = []
         transcript_parts = []
-        
-        for file_path in split_output_dir.glob(f"{base_name}_part*.mp4"):
+
+        for file_path in splits_dir.glob(f"{base_name}_part*.mp4"):
             video_parts.append(str(file_path))
-        
-        for file_path in split_output_dir.glob(f"{base_name}_part*.srt"):
+
+        for file_path in splits_dir.glob(f"{base_name}_part*.srt"):
             transcript_parts.append(str(file_path))
         
         video_parts.sort()
@@ -467,14 +489,15 @@ class VideoDirectoryProcessor:
 # Convenience functions for common operations
 async def process_local_video_file(video_path: str, output_dir: Path) -> Dict[str, Any]:
     """Complete local video processing workflow"""
-    # Copy video to output directory
-    processed_video_path = VideoFileManager.copy_video_to_output(video_path, output_dir)
+    # Get video information first to get video name
+    video_info = await VideoMetadataExtractor.get_video_info_ffprobe(video_path)
+    video_name = video_info.get('title', Path(video_path).stem)
     
-    # Get video information using ffprobe
-    video_info = await VideoMetadataExtractor.get_video_info_ffprobe(str(processed_video_path))
+    # Copy video to output directory
+    processed_video_path = VideoFileManager.copy_video_to_output(video_path, output_dir, video_name)
     
     # Look for existing subtitle file
-    subtitle_path = VideoFileManager.find_existing_subtitle(video_path, output_dir)
+    subtitle_path = VideoFileManager.find_existing_subtitle(video_path, output_dir, video_name)
     
     return {
         'video_path': str(processed_video_path),

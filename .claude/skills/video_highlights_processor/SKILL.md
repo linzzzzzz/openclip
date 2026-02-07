@@ -1,6 +1,6 @@
 ---
 name: "video_highlights_processor"
-description: "Processes videos to identify engaging moments, generate transcripts, and create highlight clips with artistic titles. Use when user needs to extract highlights from long videos or livestreams, process Bilibili/YouTube URLs or local video files, generate transcripts via Whisper, analyze content for engaging moments, or create short-form clips with styled titles and cover images."
+description: "Processes videos to identify engaging moments, generate transcripts, and create highlight clips with artistic titles. Use when user needs to: extract highlights from long videos or livestreams, clip or cut best moments from videos, process Bilibili/YouTube URLs or local video files, generate transcripts via Whisper, analyze content for engaging moments, create short-form clips with styled titles and cover images, or find and export memorable scenes from recordings."
 ---
 
 # Video Highlights Processor Skill
@@ -51,6 +51,13 @@ Where `<source>` is a video URL (Bilibili/YouTube) or local file path (MP4, WebM
 | `--no-cover` | Disable cover image generation |
 | `-v`, `--verbose` | Enable verbose logging |
 | `--debug` | Export full prompts sent to LLM (saved to `debug_prompts/`) |
+
+### Custom Filename Template (`-f`)
+
+Uses yt-dlp template syntax. Common variables: `%(title)s`, `%(uploader)s`, `%(upload_date)s`, `%(id)s`, `%(ext)s`, `%(duration)s`.
+
+Example: `-f "%(upload_date)s_%(title)s.%(ext)s"`
+
 ### Environment Variables
 
 Set the appropriate API key for the chosen `--llm-provider`:
@@ -84,6 +91,18 @@ processed_videos/
 │   └── [video_title]/
 └── transcripts/          # Generated transcripts
 ```
+
+## Option Selection Guide
+
+**Whisper model** — Default `base` works for clear audio. Use `small` for background noise, multiple speakers, or accents. Use `turbo` for speed + accuracy. Use `large`/`medium` only when transcript quality is critical.
+
+**`--force-whisper`** — Use when platform subtitles are auto-generated (often inaccurate), when "no engaging moments found" occurs (better transcripts improve analysis), or for non-native language content where platform captions are unreliable.
+
+**`--use-background`** — Use for content featuring recurring personalities (streamers, hosts) where nicknames and community references matter. Reads from `prompts/background/background.md`.
+
+**`--max-duration`** — Default 20 min works for most videos. Decrease to 10-15 for very long livestreams (2+ hours) to keep segments manageable. Increase to 30-40 for shorter content to avoid unnecessary splits. Splitting happens at subtitle boundaries to preserve coherence.
+
+**Multi-part analysis** — Videos that get split are analyzed per-segment, then aggregated to the top 5 engaging moments across all segments.
 
 ## Troubleshooting
 
