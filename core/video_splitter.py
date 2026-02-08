@@ -13,6 +13,7 @@ import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Tuple, Dict, Optional, Callable, Any
+from core.config import MAX_DURATION_MINUTES
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ class SubtitleSegment:
 class VideoSplitter:
     """Split videos and subtitles into multiple parts"""
     
-    def __init__(self, max_duration_minutes: float = 20.0, output_dir: Optional[Path] = None):
+    def __init__(self, max_duration_minutes: float = MAX_DURATION_MINUTES, output_dir: Optional[Path] = None):
         self.subtitles: List[SubtitleSegment] = []
         self.max_duration_minutes = max_duration_minutes
         self.max_duration_seconds = max_duration_minutes * 60

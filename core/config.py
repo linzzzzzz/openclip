@@ -39,3 +39,10 @@ API_KEY_ENV_VARS: Dict[str, str] = {
 
 # Default LLM provider
 DEFAULT_LLM_PROVIDER: str = "qwen"
+
+# Video splitting
+MAX_DURATION_MINUTES: float = 20.0
+
+# Whisper model for transcript generation
+# Options: tiny, base, small, medium, large, turbo
+WHISPER_MODEL: str = "base"

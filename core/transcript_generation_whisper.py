@@ -11,10 +11,11 @@ import asyncio
 import logging
 from pathlib import Path
 from typing import Optional, Dict, List, Callable, Any
+from core.config import WHISPER_MODEL
 
 logger = logging.getLogger(__name__)
 
-def run_whisper_cli(file_path, model_name="base", language=None, output_format="srt"):
+def run_whisper_cli(file_path, model_name=WHISPER_MODEL, language=None, output_format="srt"):
     """
     Transcribe audio/video file using OpenAI Whisper CLI
     
@@ -146,7 +147,7 @@ def simple_transcribe(audio_file, model="base"):
 class TranscriptProcessor:
     """Handles all transcript-related operations"""
     
-    def __init__(self, whisper_model: str = "base"):
+    def __init__(self, whisper_model: str = WHISPER_MODEL):
         self.whisper_model = whisper_model
     
     async def process_transcripts(self, 

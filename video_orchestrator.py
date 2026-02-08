@@ -31,7 +31,7 @@ from core.video_utils import (
     ResultsFormatter,
     find_existing_download
 )
-from core.config import DEFAULT_LLM_PROVIDER, API_KEY_ENV_VARS
+from core.config import DEFAULT_LLM_PROVIDER, API_KEY_ENV_VARS, MAX_DURATION_MINUTES, WHISPER_MODEL
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -45,8 +45,8 @@ class VideoOrchestrator:
     
     def __init__(self,
                 output_dir: str = "processed_videos",
-                max_duration_minutes: float = 20.0,
-                whisper_model: str = "base",
+                max_duration_minutes: float = MAX_DURATION_MINUTES,
+                whisper_model: str = WHISPER_MODEL,
                 browser: str = "firefox",
                 api_key: Optional[str] = None,
                 llm_provider: str = DEFAULT_LLM_PROVIDER,
@@ -679,9 +679,6 @@ Examples:
   python video_orchestrator.py --force-whisper "https://www.bilibili.com/video/BV1234567890"
   python video_orchestrator.py --force-whisper "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
   
-  # Custom max duration and whisper model
-  python video_orchestrator.py --max-duration 15 --whisper-model small "https://www.bilibili.com/video/BV1234567890"
-  
   # Process local video file
   python video_orchestrator.py "/path/to/video.mp4"
   
@@ -695,14 +692,6 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
     parser.add_argument('source', help='Video URL (Bilibili/YouTube) or local video file path')
     parser.add_argument('-o', '--output', default='processed_videos',
                        help='Output directory (default: processed_videos)')
-    parser.add_argument('--max-duration', type=float, default=20.0,
-                       help='Maximum duration before splitting in minutes (default: 20.0)')
-    parser.add_argument('--whisper-model', default='base',
-                       choices=['tiny', 'base', 'small', 'medium', 'large', 'turbo'],
-                       help='Whisper model to use (default: base)')
-    parser.add_argument('--browser', default='firefox',
-                       choices=['chrome', 'firefox', 'edge', 'safari'],
-                       help='Browser for cookie extraction (default: firefox)')
     parser.add_argument('--force-whisper', action='store_true',
                        help='Force transcript generation via Whisper (ignore platform subtitles)')
     parser.add_argument('--skip-download', action='store_true',
@@ -720,7 +709,10 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
     parser.add_argument('--artistic-style', default='fire_flame',
                        choices=['gradient_3d', 'neon_glow', 'metallic_gold', 'rainbow_3d', 'crystal_ice',
                                'fire_flame', 'metallic_silver', 'glowing_plasma', 'stone_carved', 'glass_transparent'],
-                       help='Artistic style for titles (default: crystal_ice)')
+                       help='Artistic style for titles (default: fire_flame)')
+    parser.add_argument('--browser', default='firefox',
+                       choices=['chrome', 'firefox', 'edge', 'safari'],
+                       help='Browser for cookie extraction (default: firefox)')
     parser.add_argument('--language', default='zh',
                        choices=['zh', 'en'],
                        help='Language for output (zh: Chinese, en: English, default: zh)')
@@ -744,8 +736,8 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
     # Initialize orchestrator
     orchestrator = VideoOrchestrator(
         output_dir=args.output,
-        max_duration_minutes=args.max_duration,
-        whisper_model=args.whisper_model,
+        max_duration_minutes=MAX_DURATION_MINUTES,
+        whisper_model=WHISPER_MODEL,
         browser=args.browser,
         api_key=api_key,
         llm_provider=args.llm_provider,

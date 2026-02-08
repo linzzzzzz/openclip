@@ -14,7 +14,7 @@ from typing import Optional, Dict, Any
 
 # Import the video orchestrator
 from video_orchestrator import VideoOrchestrator
-from core.config import API_KEY_ENV_VARS
+from core.config import API_KEY_ENV_VARS, MAX_DURATION_MINUTES, WHISPER_MODEL
 
 # Set page config
 st.set_page_config(
@@ -36,20 +36,15 @@ TRANSLATIONS = {
         'sidebar_title': '🎬 OpenClip',
         'input_type': 'Input Type',
         'video_url': 'Video URL',
-        'upload_file': 'Upload Video File',
+        'local_file_path': 'Local Video File Path',
         'llm_provider': 'LLM Provider',
         'api_key': 'API Key',
         'artistic_style': 'Artistic Style',
-        'max_duration': 'Max Duration (minutes)',
-        'whisper_model': 'Whisper Model',
-        'language': 'Language',
-        'browser': 'Browser',
+        'language': 'Output Language',
         'output_dir': 'Output Directory',
         'use_background': 'Use Background Info',
         'use_custom_prompt': 'Use Custom Highlight Analysis Prompt',
         'force_whisper': 'Force Whisper',
-        'skip_download': 'Skip Download',
-        'skip_analysis': 'Skip Analysis',
         'generate_clips': 'Generate Clips',
         'add_titles': 'Add Titles',
         'generate_cover': 'Generate Cover',
@@ -88,45 +83,36 @@ TRANSLATIONS = {
         'select_input_type': 'Select input type',
         'enter_video_url': 'Enter Bilibili or YouTube URL',
         'video_url_help': 'Supports Bilibili (https://www.bilibili.com/video/BV...) and YouTube (https://www.youtube.com/watch?v=...) URLs',
-        'upload_video_help': 'Supports common video formats',
-        'file_uploaded': 'File uploaded:',
+        'local_file_help': 'Enter the full path to a local video file',
+        'local_file_srt_notice': 'To use existing subtitles, place the .srt file in the same directory with the same filename (e.g. video.mp4 → video.srt).',
         'select_llm_provider': 'Select which AI provider to use for analysis',
         'enter_api_key': 'Enter API key or leave blank if set as environment variable',
         'api_key_help': 'You can also set the API_KEY environment variable',
         'select_artistic_style': 'Select the visual style for titles and covers',
-        'max_duration_help': 'Videos longer than this will be split',
-        'select_whisper_model': 'Select Whisper model for transcript generation',
         'select_language': 'Language for analysis and output',
-        'select_browser': 'Browser to use for downloading (Firefox recommended)',
         'enter_output_dir': 'Directory to save processed videos',
         'force_whisper_help': 'Force transcript generation via Whisper (ignore platform subtitles)',
-        'skip_download_help': 'Skip video download (use existing downloaded video)',
-        'skip_analysis_help': 'Skip engaging moments analysis (use existing analysis file)',
         'generate_clips_help': 'Generate video clips for engaging moments',
         'add_titles_help': 'Add artistic titles to video clips',
         'generate_cover_help': 'Generate cover image for the video',
         'use_background_help': 'Use background information from prompts/background/background.md',
         'use_custom_prompt_help': 'Use custom prompt for highlight analysis',
+        'advanced_config_notice': 'For advanced options (e.g. video split duration, Whisper model), edit `core/config.py`.',
     },
     'zh': {
         'app_title': 'OpenClip',
         'sidebar_title': '🎬 OpenClip',
         'input_type': '输入类型',
         'video_url': '视频链接',
-        'upload_file': '上传视频文件',
+        'local_file_path': '本地视频文件路径',
         'llm_provider': 'LLM 提供商',
         'api_key': 'API 密钥',
         'artistic_style': '艺术风格',
-        'max_duration': '最大时长（分钟）',
-        'whisper_model': 'Whisper 模型',
-        'language': '语言',
-        'browser': '浏览器',
+        'language': '输出语言',
         'output_dir': '输出目录',
         'use_background': '使用背景信息提示词',
         'use_custom_prompt': '使用自定义高光分析提示词',
         'force_whisper': '强制使用 Whisper',
-        'skip_download': '跳过下载',
-        'skip_analysis': '跳过分析',
         'generate_clips': '生成片段',
         'add_titles': '添加标题',
         'generate_cover': '生成封面',
@@ -165,25 +151,21 @@ TRANSLATIONS = {
         'select_input_type': '选择输入类型',
         'enter_video_url': '输入 B 站或 YouTube 链接',
         'video_url_help': '支持 B 站 (https://www.bilibili.com/video/BV...) 和 YouTube (https://www.youtube.com/watch?v=...) 链接',
-        'upload_video_help': '支持常见视频格式',
-        'file_uploaded': '文件已上传：',
+        'local_file_help': '输入本地视频文件的完整路径',
+        'local_file_srt_notice': '如需使用已有字幕，请将 .srt 文件放在同目录下，文件名保持一致（如 video.mp4 → video.srt）。',
         'select_llm_provider': '选择用于分析的 AI 提供商',
         'enter_api_key': '输入 API 密钥或留空（如果已设置为环境变量）',
         'api_key_help': '您也可以设置 API_KEY 环境变量',
         'select_artistic_style': '选择标题和封面的视觉风格',
-        'max_duration_help': '超过此时长的视频将被分割',
-        'select_whisper_model': '选择用于生成字幕的 Whisper 模型',
         'select_language': '分析和输出的语言',
-        'select_browser': '用于下载的浏览器（推荐 Firefox）',
         'enter_output_dir': '保存处理后视频的目录',
         'force_whisper_help': '强制通过 Whisper 生成字幕（忽略平台字幕）',
-        'skip_download_help': '跳过视频下载（使用现有的已下载视频）',
-        'skip_analysis_help': '跳过精彩时刻分析（使用现有的分析文件）',
         'generate_clips_help': '为精彩时刻生成视频片段',
         'add_titles_help': '为视频片段添加艺术标题',
         'generate_cover_help': '为视频生成封面图像',
         'use_background_help': '使用 prompts/background/background.md 中的背景信息',
         'use_custom_prompt_help': '使用自定义提示进行高光分析',
+        'advanced_config_notice': '如需调整高级选项（如视频分割时长、Whisper 模型），请编辑 `core/config.py`。',
     }
 }
 
@@ -193,8 +175,6 @@ DEFAULT_DATA = {
     'use_background': False,
     'use_custom_prompt': False,
     'force_whisper': False,
-    'skip_download': False,
-    'skip_analysis': False,
     'generate_clips': True,
     'add_titles': True,
     'generate_cover': True,
@@ -204,10 +184,7 @@ DEFAULT_DATA = {
     'llm_provider': "qwen",
     'api_key': "",
     'artistic_style': "crystal_ice",
-    'max_duration': 20.0,
-    'whisper_model': "base",
     'language': "zh",
-    'browser': "firefox",
     'output_dir': "processed_videos",
     'custom_prompt_file': None,
     'custom_prompt_text': "",
@@ -453,23 +430,14 @@ with st.sidebar:
         )
         data['video_source'] = video_source
     else:
-        uploaded_file = st.file_uploader(
-            t['upload_file'],
-            type=["mp4", "webm", "avi", "mov", "mkv"],
-            help=t['upload_video_help'],
-            key=f"uploaded_file_{st.session_state.reset_counter}"
+        video_source = st.text_input(
+            t['local_file_path'],
+            value="" if data['input_type'] != "Local File" else data.get('video_source', ""),
+            help=t['local_file_help'],
+            key=f"local_file_path_{st.session_state.reset_counter}"
         )
-        if uploaded_file:
-            # Save uploaded file to temporary location
-            temp_dir = Path("./temp_uploads")
-            temp_dir.mkdir(exist_ok=True)
-            video_source = str(temp_dir / uploaded_file.name)
-            with open(video_source, "wb") as f:
-                f.write(uploaded_file.getbuffer())
-            st.success(f"{t['file_uploaded']} {uploaded_file.name}")
-            data['video_source'] = video_source
-        else:
-            video_source = None
+        st.caption(t['local_file_srt_notice'])
+        data['video_source'] = video_source
     
     # LLM provider selection
     llm_provider = st.selectbox(
@@ -493,65 +461,19 @@ with st.sidebar:
     )
     data['api_key'] = api_key
     
-    # Artistic style selection
-    artistic_styles = [
-        "crystal_ice", "gradient_3d", "neon_glow", "metallic_gold", "rainbow_3d",
-        "fire_flame", "metallic_silver", "glowing_plasma", "stone_carved", "glass_transparent"
-    ]
-    artistic_style = st.selectbox(
-        t['artistic_style'],
-        options=artistic_styles,
-        index=artistic_styles.index(data['artistic_style']),
-        help=t['select_artistic_style'],
-        key=f"artistic_style_{st.session_state.reset_counter}"
-    )
-    data['artistic_style'] = artistic_style
-    
+    artistic_style = data['artistic_style']
+
     # Additional options
-    col1, col2 = st.columns(2)
-    with col1:
-        max_duration = st.number_input(
-            t['max_duration'],
-            min_value=1.0,
-            max_value=60.0,
-            value=data['max_duration'],
-            step=1.0,
-            help=t['max_duration_help'],
-            key=f"max_duration_{st.session_state.reset_counter}"
-        )
-        data['max_duration'] = max_duration
-    
-        whisper_models = ["tiny", "base", "small", "medium", "large", "turbo"]
-        whisper_model = st.selectbox(
-            t['whisper_model'],
-            options=whisper_models,
-            index=whisper_models.index(data['whisper_model']),
-            help=t['select_whisper_model'],
-            key=f"whisper_model_{st.session_state.reset_counter}"
-        )
-        data['whisper_model'] = whisper_model
-    
-    with col2:
-        languages = ["zh", "en"]
-        language = st.selectbox(
-            t['language'],
-            options=languages,
-            index=languages.index(data['language']),
-            help=t['select_language'],
-            key=f"language_{st.session_state.reset_counter}"
-        )
-        data['language'] = language
-    
-        browsers = ["firefox", "chrome", "edge", "safari"]
-        browser = st.selectbox(
-            t['browser'],
-            options=browsers,
-            index=browsers.index(data['browser']),
-            help=t['select_browser'],
-            key=f"browser_{st.session_state.reset_counter}"
-        )
-        data['browser'] = browser
-    
+    languages = ["zh", "en"]
+    language = st.selectbox(
+        t['language'],
+        options=languages,
+        index=languages.index(data['language']),
+        help=t['select_language'],
+        key=f"language_{st.session_state.reset_counter}"
+    )
+    data['language'] = language
+
     # Checkboxes for additional options
     use_background = st.checkbox(
         t['use_background'],
@@ -587,22 +509,6 @@ with st.sidebar:
     )
     data['force_whisper'] = force_whisper
     
-    skip_download = st.checkbox(
-        t['skip_download'],
-        value=data['skip_download'],
-        help=t['skip_download_help'],
-        key=f"skip_download_{st.session_state.reset_counter}"
-    )
-    data['skip_download'] = skip_download
-    
-    skip_analysis = st.checkbox(
-        t['skip_analysis'],
-        value=data['skip_analysis'],
-        help=t['skip_analysis_help'],
-        key=f"skip_analysis_{st.session_state.reset_counter}"
-    )
-    data['skip_analysis'] = skip_analysis
-    
     # Clip generation options
     generate_clips = st.checkbox(
         t['generate_clips'],
@@ -636,6 +542,8 @@ with st.sidebar:
         key=f"output_dir_{st.session_state.reset_counter}"
     )
     data['output_dir'] = output_dir
+
+    st.caption(t['advanced_config_notice'])
 
     # Start Over button in sidebar
     st.divider()
@@ -722,18 +630,18 @@ if st.button(t['process_video'], disabled=not video_source):
             if not api_key:
                 api_key = os.getenv(api_key_env_var)
             
-            if not api_key and not skip_analysis:
+            if not api_key:
                 st.error(f"Please provide {llm_provider.upper()} API key or set the {api_key_env_var} environment variable")
             else:
                 # Initialize orchestrator
                 orchestrator = VideoOrchestrator(
                     output_dir=output_dir,
-                    max_duration_minutes=max_duration,
-                    whisper_model=whisper_model,
-                    browser=browser,
+                    max_duration_minutes=MAX_DURATION_MINUTES,
+                    whisper_model=WHISPER_MODEL,
+                    browser="firefox",
                     api_key=api_key,
                     llm_provider=llm_provider,
-                    skip_analysis=skip_analysis,
+                    skip_analysis=False,
                     generate_clips=generate_clips,
                     add_titles=add_titles,
                     artistic_style=artistic_style,
@@ -757,7 +665,7 @@ if st.button(t['process_video'], disabled=not video_source):
                 result = asyncio.run(orchestrator.process_video(
                     video_source,
                     force_whisper=force_whisper,
-                    skip_download=skip_download,
+                    skip_download=False,
                     progress_callback=progress_callback
                 ))
                 
