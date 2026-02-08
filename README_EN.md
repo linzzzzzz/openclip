@@ -6,17 +6,7 @@ A lightweight automated video processing pipeline that identifies and extracts t
 
 ## 🎯 What It Does
 
-This project orchestrates a complete workflow to:
-
-1. **Download** videos from Bilibili/YouTube or process local video files
-2. **Extract** subtitles (from platform or generate with Whisper)
-3. **Split** long videos (>20 minutes) into manageable parts
-4. **Analyze** content using AI to identify engaging moments
-5. **Generate** video clips of the top 5 most engaging moments
-6. **Add** artistic titles with 10 different visual styles
-7. **Create** cover images for each clip
-
-Perfect for content creators who want to extract highlights from long livestreams or videos for social media sharing.
+Give it a video URL or local file, and it handles the full pipeline: **Download → Transcribe → Split → AI Analysis → Clip Generation → Artistic Titles → Cover Images** — outputting the top 5 most engaging moments. Great for quickly extracting highlights from long livestreams or videos.
 
 > 💡 **How is it different from AutoClip?** See the [comparison section](#-comparison-with-autoclip) to learn about OpenClip's lightweight design philosophy.
 
