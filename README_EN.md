@@ -386,19 +386,7 @@ Edit prompt templates in `prompts/`:
 
 ### Adding New Artistic Styles
 
-Edit `title_adder.py` to add new visual effects. See `docs/ARTISTIC_TITLES_GUIDE.md` for details.
-
-## 📚 Documentation
-
-Detailed documentation available in `docs/`:
-
-- **QUICK_START_GUIDE.md** - Quick start and examples
-- **ARTISTIC_TITLES_GUIDE.md** - Title styles and customization
-- **README_video_orchestrator.md** - Orchestrator details
-- **README_bilibili_downloader.md** - Download component
-- **README_qwen_integration.md** - AI analysis integration
-- **SKIP_ANALYSIS_FEATURE.md** - Skip analysis workflow
-- **DIRECTORY_STRUCTURE.md** - Project organization
+Edit `title_adder.py` to add new visual effects.
 
 ## 🐛 Troubleshooting
 
@@ -559,11 +547,10 @@ Thanks to [AutoClip](https://github.com/zhouxiaoka/autoclip) for their contribut
 ## 📞 Support
 
 For issues or questions:
-1. Check the documentation in `docs/`
-2. Review error messages in console output
-3. Test with a short video first
-4. Open an issue on GitHub
-5. Join our [Discord community](https://discord.gg/KsC4Keaq) for discussions
+1. Review error messages in console output
+2. Test with a short video first
+3. Open an issue on GitHub
+4. Join our [Discord community](https://discord.gg/KsC4Keaq) for discussions
 
 ---
 

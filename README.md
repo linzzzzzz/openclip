@@ -385,19 +385,7 @@ uv run python video_orchestrator.py --use-background "VIDEO_URL"
 
 ### 添加新的艺术风格
 
-编辑 `title_adder.py` 以添加新的视觉效果。详见 `docs/ARTISTIC_TITLES_GUIDE.md`。
-
-## 📚 文档
-
-`docs/` 中提供详细文档：
-
-- **QUICK_START_GUIDE.md** - 快速开始和示例
-- **ARTISTIC_TITLES_GUIDE.md** - 字幕风格和自定义
-- **README_video_orchestrator.md** - 编排器详情
-- **README_bilibili_downloader.md** - 下载组件
-- **README_qwen_integration.md** - AI 分析集成
-- **SKIP_ANALYSIS_FEATURE.md** - 跳过分析工作流
-- **DIRECTORY_STRUCTURE.md** - 项目组织
+编辑 `title_adder.py` 以添加新的视觉效果。
 
 ## 🐛 故障排除
 
@@ -558,11 +546,10 @@ OpenClip 受 [AutoClip](https://github.com/zhouxiaoka/autoclip) 启发，但采�
 ## 📞 支持
 
 如有问题或疑问：
-1. 查看 `docs/` 中的文档
-2. 查看控制台输出中的错误消息
-3. 先用短视频测试
-4. 在 GitHub 上提出 issue
-5. 加入我们的 [Discord 社区](https://discord.gg/KsC4Keaq) 讨论交流
+1. 查看控制台输出中的错误消息
+2. 先用短视频测试
+3. 在 GitHub 上提出 issue
+4. 加入我们的 [Discord 社区](https://discord.gg/KsC4Keaq) 讨论交流
 
 ---
 
