@@ -36,15 +36,9 @@ Give it a video URL or local file, and it handles the full pipeline: **Download 
   - Ubuntu: `sudo apt install ffmpeg`
   - Windows: Download from [ffmpeg.org](https://ffmpeg.org)
 
-### Optional
-
-- **LLM API Key** - Required for AI analysis and clip generation (choose one)
-  - **Qwen API Key**
-    - Get your key from [Alibaba Cloud](https://dashscope.aliyun.com/)
-    - Set as environment variable: `export QWEN_API_KEY=your_key_here`
-  - **OpenRouter API Key**
-    - Get your key from [OpenRouter](https://openrouter.ai/)
-    - Set as environment variable: `export OPENROUTER_API_KEY=your_key_here`
+- **LLM API Key** (choose one)
+  - **Qwen API Key** - Get your key from [Alibaba Cloud](https://dashscope.aliyun.com/)
+  - **OpenRouter API Key** - Get your key from [OpenRouter](https://openrouter.ai/)
 
 ## 🚀 Quick Start
 

@@ -35,15 +35,9 @@
   - Ubuntu: `sudo apt install ffmpeg`
   - Windows: 从 [ffmpeg.org](https://ffmpeg.org) 下载
 
-### 可选
-
-- **LLM API Key** - AI 分析和剪辑生成所需（选择其一）
-  - **Qwen API Key**
-    - 从[阿里云](https://dashscope.aliyun.com/)获取密钥
-    - 设置为环境变量：`export QWEN_API_KEY=your_key_here`
-  - **OpenRouter API Key**
-    - 从[OpenRouter](https://openrouter.ai/)获取密钥
-    - 设置为环境变量：`export OPENROUTER_API_KEY=your_key_here`
+- **LLM API Key**（选择其一）
+  - **Qwen API Key** - 从[阿里云](https://dashscope.aliyun.com/)获取密钥
+  - **OpenRouter API Key** - 从[OpenRouter](https://openrouter.ai/)获取密钥
 
 ## 🚀 快速开始
 
