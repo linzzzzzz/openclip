@@ -89,7 +89,7 @@ uv run streamlit run streamlit_app.py
 
 ```
 "帮我从这个视频里提取精彩片段：https://www.bilibili.com/video/BV1234567890"
-"处理一下 ~/Downloads/livestream.mp4，用霓虹发光风格"
+"处理一下 ~/Downloads/livestream.mp4，用英语作为输出语言"
 ```
 
 Agent 会自动调用内置技能，完成下载、转录、分析、剪辑和标题添加等全部流程。
@@ -98,242 +98,81 @@ Agent 会自动调用内置技能，完成下载、转录、分析、剪辑和�
 
 #### 选项 C：使用命令行界面
 
-**处理 Bilibili 视频：**
 ```bash
+# 处理 Bilibili 视频
 uv run python video_orchestrator.py "https://www.bilibili.com/video/BV1234567890"
-```
 
-**处理 YouTube 视频：**
-```bash
+# 处理 YouTube 视频
 uv run python video_orchestrator.py "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-```
 
-**处理本地视频：**
-```bash
+# 处理本地视频
 uv run python video_orchestrator.py "/path/to/video.mp4"
 ```
 
-## 📖 使用指南
+## 📖 命令行参数
 
-### 基础命令
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `VIDEO_URL_OR_PATH` | 视频 URL 或本地文件路径（位置参数） | 必填 |
+| `-o`, `--output-dir` | 自定义输出目录 | `processed_videos` |
+| `--llm-provider` | LLM 提供商（`qwen` 或 `openrouter`） | `qwen` |
+| `--language` | 输出语言（`zh` 或 `en`） | `zh` |
+| `--artistic-style` | Banner 标题艺术风格（见下方列表） | `fire_flame` |
+| `--max-duration` | 视频分割时长，单位分钟 | `20` |
+| `--browser` | 用于 cookie 的浏览器（`chrome`/`firefox`/`edge`/`safari`） | `firefox` |
+| `--force-whisper` | 强制使用 Whisper 转录（忽略平台字幕） | 关 |
+| `--use-background` | 使用背景信息辅助分析 | 关 |
+| `--skip-download` | 跳过下载，使用已下载的视频 | 关 |
+| `--skip-analysis` | 跳过分析，使用已有分析结果 | 关 |
+| `--no-clips` | 不生成剪辑 | 关 |
+| `--no-titles` | 不添加艺术字幕 | 关 |
+| `--no-cover` | 不生成封面图片 | 关 |
 
+### 🎨 Banner 标题艺术风格
+
+| 风格 | 效果 |
+|------|------|
+| `fire_flame` | 火焰效果（默认） |
+| `gradient_3d` | 渐变3D效果 |
+| `neon_glow` | 霓虹发光效果 |
+| `metallic_gold` | 金属金色效果 |
+| `rainbow_3d` | 彩虹3D效果 |
+| `crystal_ice` | 水晶冰效果 |
+| `metallic_silver` | 金属银色效果 |
+| `glowing_plasma` | 发光等离子效果 |
+| `stone_carved` | 石刻效果 |
+| `glass_transparent` | 玻璃透明效果 |
+
+## 🔍 命令行示例
+
+**处理 Bilibili 视频，加载背景信息， 并使用霓虹风格处理Banner标题：**
 ```bash
-# 完整流水线，启用所有功能
-uv run python video_orchestrator.py "VIDEO_URL_OR_PATH"
-
-# 使用自定义艺术风格处理 YouTube 视频
-uv run python video_orchestrator.py --artistic-style neon_glow "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-
-# 使用自定义艺术风格处理 Bilibili 视频
-uv run python video_orchestrator.py --artistic-style neon_glow "https://www.bilibili.com/video/BV1234567890"
-
-# 处理本地文件
-uv run python video_orchestrator.py ~/Videos/livestream.mp4
-
-# 自定义输出目录
-uv run python video_orchestrator.py -o my_output "VIDEO_URL"
+uv run python video_orchestrator.py \
+  --artistic-style neon_glow \
+  --use-background \
+  "https://www.bilibili.com/video/BV1wT6GBBEPp"
 ```
 
-### 字幕选项
-
+**仅分析，不生成剪辑：**
 ```bash
-# 使用平台字幕（默认，支持 Bilibili 和 YouTube）
-uv run python video_orchestrator.py "VIDEO_URL"
-
-# 强制使用 Whisper 转录
-uv run python video_orchestrator.py --force-whisper "VIDEO_URL"
-
-# 使用不同的 Whisper 模型（tiny, base, small, medium, large, turbo）
-uv run python video_orchestrator.py --whisper-model small "VIDEO_URL"
-```
-
-### 视频分割
-
-```bash
-# 默认：在20分钟处分割
-uv run python video_orchestrator.py "VIDEO_URL"
-
-# 自定义分割时长（15分钟）
-uv run python video_orchestrator.py --max-duration 15 "VIDEO_URL"
-
-# 20分钟以下的视频不会被分割
-```
-
-### 分析选项
-
-```bash
-# 包含背景信息（主播名称、上下文）
-uv run python video_orchestrator.py --use-background "VIDEO_URL"
-
-# 使用英文输出（默认为中文）
-uv run python video_orchestrator.py --language en "VIDEO_URL"
-
-# 跳过分析（使用现有分析文件）
-uv run python video_orchestrator.py --skip-analysis "VIDEO_URL"
-
-# 仅分析（不生成剪辑或字幕）
 uv run python video_orchestrator.py --no-clips --no-titles "VIDEO_URL"
-
-# 使用 OpenRouter 作为 LLM 提供商（默认为 Qwen）
-uv run python video_orchestrator.py --llm-provider openrouter "VIDEO_URL"
 ```
 
-### 剪辑生成
-
+**跳过下载，重新处理已有视频：**
 ```bash
-# 生成带字幕的剪辑（默认）
-uv run python video_orchestrator.py "VIDEO_URL"
-
-# 生成不带字幕的剪辑
-uv run python video_orchestrator.py --no-titles "VIDEO_URL"
-
-# 跳过剪辑生成
-uv run python video_orchestrator.py --no-clips "VIDEO_URL"
-
-# 禁用封面图片生成
-uv run python video_orchestrator.py --no-cover "VIDEO_URL"
-```
-
-### 艺术风格
-
-从10种不同的字幕风格中选择：
-
-```bash
---artistic-style gradient_3d      # 渐变3D效果
---artistic-style neon_glow         # 霓虹发光效果
---artistic-style metallic_gold     # 金属金色效果
---artistic-style rainbow_3d        # 彩虹3D效果
---artistic-style crystal_ice       # 水晶冰效果
---artistic-style fire_flame        # 火焰效果（默认）
---artistic-style metallic_silver   # 金属银色效果
---artistic-style glowing_plasma    # 发光等离子效果
---artistic-style stone_carved      # 石刻效果
---artistic-style glass_transparent # 玻璃透明效果
-```
-
-### 下载选项
-
-```bash
-# 跳过下载（使用现有下载的视频）
-uv run python video_orchestrator.py --skip-download "VIDEO_URL"
-
-# 使用不同浏览器的 cookies（chrome, firefox, edge, safari）
-uv run python video_orchestrator.py --browser firefox "VIDEO_URL"
+uv run python video_orchestrator.py --skip-download --artistic-style crystal_ice "VIDEO_URL"
 ```
 
 ## 📁 输出结构
 
-处理后，输出目录将包含：
+处理后，输出目录结构如下：
 
 ```
-processed_videos/
-└── {video_name}/                        # 视频专用根目录
-    ├── downloads/                       # 下载的视频和字幕
-    │   ├── video.mp4                    # 原始视频
-    │   ├── video.srt                    # 字幕
-    │   ├── video.info.json              # 视频元数据
-    │   └── video.jpg                    # 缩略图
-    │
-    ├── splits/                          # 分割的视频片段（如果 >20分钟）
-    │   ├── {video_name}_part01.mp4      # 视频片段1
-    │   ├── {video_name}_part01.srt      # 字幕片段1
-    │   ├── {video_name}_part02.mp4      # 视频片段2
-    │   ├── {video_name}_part02.srt      # 字幕片段2
-    │   ├── highlights_part01.json       # AI分析片段1
-    │   ├── highlights_part02.json       # AI分析片段2
-    │   └── top_engaging_moments.json    # 前5个汇总时刻
-    │
-    ├── clips/                           # 生成的剪辑
-    │   ├── rank_01_moment_title.mp4     # 剪辑 #1
-    │   ├── rank_02_moment_title.mp4     # 剪辑 #2
-    │   ├── rank_03_moment_title.mp4     # 剪辑 #3
-    │   ├── rank_04_moment_title.mp4     # 剪辑 #4
-    │   ├── rank_05_moment_title.mp4     # 剪辑 #5
-    │   └── engaging_moments_summary.md  # 摘要
-    │
-    └── clips_with_titles/               # 带艺术字幕的剪辑
-        ├── artistic_fire_flame_rank_01_moment_title.mp4
-        ├── artistic_fire_flame_rank_02_moment_title.mp4
-        ├── artistic_fire_flame_rank_03_moment_title.mp4
-        ├── artistic_fire_flame_rank_04_moment_title.mp4
-        ├── artistic_fire_flame_rank_05_moment_title.mp4
-        ├── cover_rank_01_moment_title.jpg              # 封面图片
-        ├── cover_rank_02_moment_title.jpg
-        ├── cover_rank_03_moment_title.jpg
-        ├── cover_rank_04_moment_title.jpg
-        ├── cover_rank_05_moment_title.jpg
-        └── README.md
-```
-
-## 🔧 架构
-
-项目由几个模块化组件组成：
-
-### 核心组件
-
-1. **video_orchestrator.py** - 主编排脚本
-   - 协调所有组件
-   - 管理工作流和进度
-   - 处理命令行界面
-
-2. **视频下载组件** - 视频下载
-   - **bilibili_downloader.py** - 使用自动 cookie 处理从 Bilibili 下载
-   - **youtube_downloader.py** - 从 YouTube 下载视频和字幕
-   - 提取字幕（优先平台生成的字幕）
-   - 支持多个浏览器进行身份验证
-
-3. **video_splitter.py** - 视频分割
-   - 将长视频分割为片段
-   - 保持字幕同步
-   - 可配置分割时长
-
-4. **transcript_generation_whisper.py** - 转录生成
-   - 使用 OpenAI Whisper 进行语音转文字
-   - Bilibili 字幕不可用时的回退方案
-   - 多种模型大小可选
-
-5. **engaging_moments_analyzer.py** - AI 分析
-   - 使用 LLM API 分析转录（支持 Qwen 和 OpenRouter）
-   - 识别精彩时刻
-   - 跨片段汇总顶级时刻
-
-6. **clip_generator.py** - 剪辑提取
-   - 从时间戳生成视频剪辑
-   - 保持视频质量
-   - 创建摘要文档
-
-7. **title_adder.py** - 字幕叠加
-   - 为剪辑添加艺术字幕
-   - 10种不同视觉风格
-   - 中文文本支持
-
-8. **cover_image_generator.py** - 封面生成
-   - 从剪辑中提取帧
-   - 添加样式文本叠加
-   - 创建缩略图
-
-### 工作流程
-
-```
-输入（URL 或文件）
-    ↓
-下载/验证视频
-    ↓
-提取/生成转录
-    ↓
-检查时长 → 如果 >20分钟则分割
-    ↓
-AI 分析（每个片段）
-    ↓
-汇总前5个时刻
-    ↓
-生成剪辑
-    ↓
-添加艺术字幕
-    ↓
-生成封面图片
-    ↓
-输出完成！
+processed_videos/{video_name}/
+├── downloads/            # 原始视频、字幕和元数据
+├── splits/               # 分割片段和 AI 分析结果（视频 >20分钟时）
+├── clips/                # 生成的精彩剪辑和摘要
+└── clips_with_titles/    # 带艺术字幕的最终剪辑和封面图片
 ```
 
 ## 🎨 自定义
@@ -370,122 +209,72 @@ uv run python video_orchestrator.py --use-background "VIDEO_URL"
 
 编辑 `title_adder.py` 以添加新的视觉效果。
 
-## 🐛 故障排除
+## 📎 其他
 
-### 未生成剪辑
+<details>
+<summary>🔧 工作流程</summary>
 
-**原因**：缺少 API 密钥或分析失败
-
-**解决方案**：
-```bash
-# 检查 Qwen API 密钥
-echo $QWEN_API_KEY
-
-# 或检查 OpenRouter API 密钥
-echo $OPENROUTER_API_KEY
-
-# 验证分析文件是否存在
-ls processed_videos/splits/*/top_engaging_moments.json
+```
+输入（URL 或文件）
+    ↓
+下载/验证视频
+    ↓
+提取/生成转录
+    ↓
+检查时长 → 如果 >20分钟则分割
+    ↓
+AI 分析（每个片段）
+    ↓
+汇总前5个时刻
+    ↓
+生成剪辑
+    ↓
+添加艺术字幕
+    ↓
+生成封面图片
+    ↓
+输出完成！
 ```
 
-### FFmpeg 错误
+</details>
 
-**原因**：FFmpeg 未安装或不在 PATH 中
-
-**解决方案**：
-```bash
-# 检查 FFmpeg
-ffmpeg -version
-
-# 如果缺失则安装
-brew install ffmpeg  # macOS
-```
-
-### 内存问题
-
-**原因**：处理非常长的视频
-
-**解决方案**：
-```bash
-# 使用更短的分割时长
-uv run python video_orchestrator.py --max-duration 10 "VIDEO_URL"
-
-# 或分阶段处理
-uv run python video_orchestrator.py --no-titles "VIDEO_URL"
-```
-
-### 中文文本不显示
-
-**原因**：缺少中文字体
-
-**解决方案**：
-- macOS：自动检测字体（STHeiti、PingFang）
-- Windows：安装宋体或微软雅黑
-- Linux：安装 `fonts-wqy-zenhei` 或类似字体
+<details>
+<summary>🐛 故障排除</summary>
 
 ### 下载失败
+**原因**：
+- yt-dlp版本过旧。尝试更新依赖版本：`uv sync`。
+- Cookie/身份验证问题。尝试 `--browser firefox` 切换浏览器，或先在浏览器中登录 Bilibili。
 
-**原因**：Cookie/身份验证问题
+### 未生成剪辑
+**原因**：缺少 API 密钥或分析失败。检查 `echo $QWEN_API_KEY` 或 `echo $OPENROUTER_API_KEY`，并确认分析文件存在。
 
-**解决方案**：
-```bash
-# 尝试不同的浏览器
-uv run python video_orchestrator.py --browser firefox "VIDEO_URL"
+### FFmpeg 错误
+**原因**：FFmpeg 未安装或不在 PATH 中。运行 `ffmpeg -version` 检查，缺失则安装（macOS: `brew install ffmpeg`）。
 
-# 或先在浏览器中登录 Bilibili
-```
+### 内存问题
+**原因**：视频过长。尝试 `--max-duration 10` 缩短分割时长，或 `--no-titles` 分阶段处理。
 
-## 🔍 示例
+### 中文文本不显示
+**原因**：缺少中文字体。macOS 自动检测（STHeiti、PingFang），Windows 需安装宋体或微软雅黑，Linux 安装 `fonts-wqy-zenhei`。
 
-### 示例 1：快速本地视频处理
+</details>
 
-```bash
-# 使用默认设置处理本地视频
-uv run python video_orchestrator.py ~/Downloads/livestream.mp4
-```
+## 🔄 与 AutoClip 的对比
 
-### 示例 2：完整 Bilibili 流水线
+OpenClip 受 [AutoClip](https://github.com/zhouxiaoka/autoclip) 启发，但采用不同设计理念：
 
-```bash
-# 设置 API 密钥
-export QWEN_API_KEY=sk-xxxxx
+| 特性 | OpenClip | AutoClip |
+|------|----------|----------|
+| **代码规模** | ~5K 行 | ~2M 行 (含前端依赖) |
+| **依赖** | Python + FFmpeg | Docker + Redis + PostgreSQL + Celery |
+| **定制性** | 可编辑提示词模板 | 配置文件 |
+| **界面** | Web界面+Agent Skills+命令行 | Web界面 |
+| **部署** | `uv sync` 即用 | Docker容器化 |
 
-# 使用霓虹发光风格处理
-uv run python video_orchestrator.py \
-  --artistic-style neon_glow \
-  --use-background \
-  "https://www.bilibili.com/video/BV1wT6GBBEPp"
-```
+**OpenClip 特点：** 轻量（5K行代码）、快速启动、提示词可定制、易于维护和二次开发
 
-### 示例 3：仅分析
-
-```bash
-# 仅分析，不生成剪辑
-uv run python video_orchestrator.py \
-  --no-clips \
-  --no-titles \
-  "https://www.bilibili.com/video/BV1234567890"
-```
-
-### 示例 4：重用现有下载
-
-```bash
-# 跳过下载，使用现有视频
-uv run python video_orchestrator.py \
-  --skip-download \
-  --artistic-style crystal_ice \
-  "https://www.bilibili.com/video/BV1234567890"
-```
-
-### 示例 5：自定义分割时长
-
-```bash
-# 分割为15分钟片段
-uv run python video_orchestrator.py \
-  --max-duration 15 \
-  --whisper-model small \
-  "VIDEO_URL"
-```
+感谢 [AutoClip](https://github.com/zhouxiaoka/autoclip) 为视频自动化处理做出的贡献。
 
 ## 🤝 贡献
 
@@ -503,28 +292,12 @@ uv run python video_orchestrator.py \
 
 ## 🙏 致谢
 
+- **AutoClip** - 为视频自动化处理做出的贡献
 - **OpenAI Whisper** - 语音识别
 - **阿里巴巴 Qwen** - AI 分析
 - **yt-dlp** - 视频下载
 - **MoviePy** - 视频处理
 - **FFmpeg** - 视频编码
-
-## 🔄 与 AutoClip 的对比
-
-OpenClip 受 [AutoClip](https://github.com/zhouxiaoka/autoclip) 启发，但采用不同设计理念：
-
-| 特性 | OpenClip | AutoClip |
-|------|----------|----------|
-| **代码规模** | ~5K 行 | ~2M 行 (含前端依赖) |
-| **架构** | 轻量命令行工具 | Web应用 (FastAPI + React) |
-| **依赖** | Python + FFmpeg | Docker + Redis + PostgreSQL + Celery |
-| **定制性** | 可编辑提示词模板 | 配置文件 |
-| **界面** | 命令行 | Web界面 + 实时监控 |
-| **部署** | `uv sync` 即用 | Docker容器化 |
-
-**OpenClip 特点：** 轻量（5K行代码）、快速启动、提示词可定制、10种艺术字幕风格、易于维护和二次开发
-
-感谢 [AutoClip](https://github.com/zhouxiaoka/autoclip) 为视频自动化处理做出的贡献。
 
 ## 📞 支持
 
@@ -533,7 +306,3 @@ OpenClip 受 [AutoClip](https://github.com/zhouxiaoka/autoclip) 启发，但采�
 2. 先用短视频测试
 3. 在 GitHub 上提出 issue
 4. 加入我们的 [Discord 社区](https://discord.gg/KsC4Keaq) 讨论交流
-
----
-
-**用 ❤️ 为内容创作者打造**
