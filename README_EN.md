@@ -293,15 +293,6 @@ Contributions welcome! Areas for improvement:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
 
-## 🙏 Acknowledgments
-
-- **AutoClip** - Contributions to video automation
-- **OpenAI Whisper** - Speech recognition
-- **Alibaba Qwen** - AI analysis
-- **yt-dlp** - Video downloading
-- **MoviePy** - Video processing
-- **FFmpeg** - Video encoding
-
 ## 📞 Support
 
 For issues or questions:

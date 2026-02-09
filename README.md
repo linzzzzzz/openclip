@@ -293,15 +293,6 @@ OpenClip 受 [AutoClip](https://github.com/zhouxiaoka/autoclip) 启发，但采�
 
 本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件
 
-## 🙏 致谢
-
-- **AutoClip** - 为视频自动化处理做出的贡献
-- **OpenAI Whisper** - 语音识别
-- **阿里巴巴 Qwen** - AI 分析
-- **yt-dlp** - 视频下载
-- **MoviePy** - 视频处理
-- **FFmpeg** - 视频编码
-
 ## 📞 支持
 
 如有问题或疑问：
