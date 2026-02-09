@@ -251,20 +251,31 @@ class VideoOrchestrator:
                 result.video_parts = split_result['video_parts']
                 result.transcript_parts = split_result['transcript_parts']
             else:
-                # Copy video and subtitle into splits dir for consistent layout
+                # Treat single video as split video with one part (_part01)
                 video_file = Path(result.video_path)
-                splits_video = splits_dir / video_file.name
+                # Add _part01 suffix to video filename
+                splits_video_name = f"{video_file.stem}_part01{video_file.suffix}"
+                splits_video = splits_dir / splits_video_name
                 if not splits_video.exists():
                     shutil.copy2(str(video_file), str(splits_video))
-                    logger.info(f"📁 Copied video to splits dir: {splits_video.name}")
+                    logger.info(f"📁 Copied video to splits dir as part01: {splits_video.name}")
+                # Set was_split to True and add to video_parts
+                result.was_split = True
+                result.video_parts = [str(splits_video)]
                 result.video_path = str(splits_video)
 
                 if subtitle_path and Path(subtitle_path).exists():
                     sub_file = Path(subtitle_path)
-                    splits_sub = splits_dir / sub_file.name
+                    # Add _part01 suffix to subtitle filename
+                    splits_sub_name = f"{sub_file.stem}_part01{sub_file.suffix}"
+                    splits_sub = splits_dir / splits_sub_name
                     if not splits_sub.exists():
                         shutil.copy2(str(sub_file), str(splits_sub))
-                        logger.info(f"📁 Copied subtitle to splits dir: {splits_sub.name}")
+                        logger.info(f"📁 Copied subtitle to splits dir as part01: {splits_sub.name}")
+                    # Add subtitle to transcript_parts
+                    if not hasattr(result, 'transcript_parts'):
+                        result.transcript_parts = []
+                    result.transcript_parts.append(str(splits_sub))
             
             # Step 3: Handle transcript generation
             if skip_transcript:
@@ -288,12 +299,12 @@ class VideoOrchestrator:
                 )
 
                 result.transcript_source = transcript_result['source']
-                if not result.was_split:
+                # Always use transcript_parts since all videos are now treated as split videos
+                if transcript_result.get('transcript_parts'):
+                    result.transcript_parts = transcript_result['transcript_parts']
+                # Also set transcript_path for backward compatibility
+                if transcript_result.get('transcript_path'):
                     result.transcript_path = transcript_result['transcript_path']
-                else:
-                    # Transcript parts were already set during splitting if bilibili subtitles used
-                    if transcript_result['source'] == 'whisper':
-                        result.transcript_parts = transcript_result['transcript_parts']
             
             # Step 4: Analyze engaging moments (if not skipped and analyzer available)
             engaging_result = None
@@ -599,27 +610,6 @@ class VideoOrchestrator:
                     'top_moments': top_moments,
                     'total_parts_analyzed': len(result.transcript_parts)
                 }
-                
-            elif result.transcript_path:
-                # Single video analysis
-                logger.info("🔍 Analyzing single video for engaging moments...")
-                
-                highlights = await self.engaging_moments_analyzer.analyze_part_for_engaging_moments(
-                    result.transcript_path, "full_video"
-                )
-                
-                # Save highlights
-                transcript_dir = Path(result.transcript_path).parent
-                highlights_file = transcript_dir / "highlights_full_video.json"
-                await self.engaging_moments_analyzer.save_highlights_to_file(highlights, str(highlights_file))
-                
-                return {
-                    'highlights_files': [str(highlights_file)],
-                    'aggregated_file': str(highlights_file),
-                    'top_moments': highlights,
-                    'total_parts_analyzed': 1
-                }
-            
             else:
                 logger.warning("No transcript available for engaging moments analysis")
                 return {

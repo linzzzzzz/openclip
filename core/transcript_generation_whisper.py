@@ -15,25 +15,29 @@ from core.config import WHISPER_MODEL
 
 logger = logging.getLogger(__name__)
 
-def run_whisper_cli(file_path, model_name=WHISPER_MODEL, language=None, output_format="srt"):
+def run_whisper_cli(file_path, model_name=WHISPER_MODEL, language=None, output_format="srt", output_dir=None):
     """
     Transcribe audio/video file using OpenAI Whisper CLI
-    
+
     Args:
         file_path (str): Path to audio/video file
         model_name (str): Whisper model to use (tiny, base, small, medium, large, turbo)
         language (str): Language code (e.g., 'en', 'zh', 'ja') or None for auto-detection
         output_format (str): Output format (txt, vtt, srt, tsv, json, all)
-    
+        output_dir (str): Directory to write output files to (defaults to current directory)
+
     Returns:
         bool: True if successful, False if failed
     """
     print(f"🎵 Transcribing: {file_path}")
     print(f"📊 Model: {model_name}")
     print(f"📝 Output format: {output_format}")
-    
+
     # Build the whisper command
     cmd = ["whisper", file_path, "--model", model_name, "--output_format", output_format]
+
+    if output_dir:
+        cmd.extend(["--output_dir", str(output_dir)])
     
     if language:
         cmd.extend(["--language", language])
@@ -190,39 +194,31 @@ class TranscriptProcessor:
             
             logger.info(f"🎙️  Generating transcript for: {Path(video_file).name}")
             
-            # Run whisper in the directory of the video file
-            original_dir = os.getcwd()
-            video_dir = Path(video_file).parent
-            video_name = Path(video_file).name
-            
-            try:
-                os.chdir(video_dir)
-                
-                success = run_whisper_cli(
-                    video_name,
-                    model_name=self.whisper_model,
-                    language="zh",  # Assuming Chinese content
-                    output_format="srt"
-                )
-                
-                if success:
-                    # Find generated SRT file
-                    srt_path = video_dir / f"{Path(video_name).stem}.srt"
-                    if srt_path.exists():
-                        transcript_parts.append(str(srt_path))
-                        logger.info(f"✅ Generated: {srt_path.name}")
-                    else:
-                        logger.warning(f"⚠️  SRT file not found for {video_name}")
+            video_path = Path(video_file)
+            video_dir = video_path.parent
+
+            success = run_whisper_cli(
+                str(video_path),
+                model_name=self.whisper_model,
+                language="zh",  # Assuming Chinese content
+                output_format="srt",
+                output_dir=str(video_dir)
+            )
+
+            if success:
+                srt_path = video_dir / f"{video_path.stem}.srt"
+                if srt_path.exists():
+                    transcript_parts.append(str(srt_path))
+                    logger.info(f"✅ Generated: {srt_path.name}")
                 else:
-                    logger.error(f"❌ Whisper failed for {video_name}")
-            
-            finally:
-                os.chdir(original_dir)
+                    logger.warning(f"⚠️  SRT file not found for {video_path.name}")
+            else:
+                logger.error(f"❌ Whisper failed for {video_path.name}")
         
         return {
             'source': 'whisper',
             'transcript_path': transcript_parts[0] if len(transcript_parts) == 1 else '',
-            'transcript_parts': transcript_parts if len(transcript_parts) > 1 else []
+            'transcript_parts': transcript_parts
         }
     
     def _get_existing_transcript_parts(self, video_files: List[str]) -> List[str]:
