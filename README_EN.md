@@ -128,7 +128,8 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 | `--no-titles` | Don't add artistic titles | Off |
 | `--no-cover` | Don't generate cover images | Off |
 
-### 🎨 Banner Title Artistic Styles
+<details>
+<summary>🎨 Banner Title Artistic Styles</summary>
 
 | Style | Effect |
 |-------|--------|
@@ -142,6 +143,8 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 | `glowing_plasma` | Glowing plasma effect |
 | `stone_carved` | Stone carved effect |
 | `glass_transparent` | Glass transparent effect |
+
+</details>
 
 ## 🔍 Command Line Examples
 
@@ -170,7 +173,7 @@ After processing, the output directory is structured as follows:
 ```
 processed_videos/{video_name}/
 ├── downloads/            # Original video, subtitles, and metadata
-├── splits/               # Split parts and AI analysis results (if video >20 min)
+├── splits/               # Split parts and AI analysis results
 ├── clips/                # Generated highlight clips and summary
 └── clips_with_titles/    # Final clips with artistic titles and cover images
 ```

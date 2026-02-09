@@ -128,7 +128,8 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 | `--no-titles` | 不添加艺术字幕 | 关 |
 | `--no-cover` | 不生成封面图片 | 关 |
 
-### 🎨 Banner 标题艺术风格
+<details>
+<summary>🎨 Banner 标题艺术风格</summary>
 
 | 风格 | 效果 |
 |------|------|
@@ -142,6 +143,8 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 | `glowing_plasma` | 发光等离子效果 |
 | `stone_carved` | 石刻效果 |
 | `glass_transparent` | 玻璃透明效果 |
+
+</details>
 
 ## 🔍 命令行示例
 
@@ -170,7 +173,7 @@ uv run python video_orchestrator.py --skip-download --artistic-style crystal_ice
 ```
 processed_videos/{video_name}/
 ├── downloads/            # 原始视频、字幕和元数据
-├── splits/               # 分割片段和 AI 分析结果（视频 >20分钟时）
+├── splits/               # 分割片段和 AI 分析结果
 ├── clips/                # 生成的精彩剪辑和摘要
 └── clips_with_titles/    # 带艺术字幕的最终剪辑和封面图片
 ```
