@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Optional, Callable, Dict, Any
 from datetime import datetime
 import os
+import shutil
 
 # Import our components from core package
 from core.downloaders import VideoDownloader, DownloadProcessor
@@ -31,7 +32,7 @@ from core.video_utils import (
     ResultsFormatter,
     find_existing_download
 )
-from core.config import DEFAULT_LLM_PROVIDER, API_KEY_ENV_VARS, MAX_DURATION_MINUTES, WHISPER_MODEL, MAX_CLIPS
+from core.config import DEFAULT_LLM_PROVIDER, API_KEY_ENV_VARS, MAX_DURATION_MINUTES, WHISPER_MODEL, MAX_CLIPS, SKIP_DOWNLOAD, SKIP_TRANSCRIPT
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -161,20 +162,22 @@ class VideoOrchestrator:
         logger.info(f"⏱️  Max duration: {max_duration_minutes} minutes")
         logger.info(f"🤖 Whisper model: {whisper_model}")
     
-    async def process_video(self, 
-                          source: str, 
+    async def process_video(self,
+                          source: str,
                           force_whisper: bool = False,
                           custom_filename: Optional[str] = None,
-                          skip_download: bool = False,
+                          skip_download: bool = SKIP_DOWNLOAD,
+                          skip_transcript: bool = SKIP_TRANSCRIPT,
                           progress_callback: Optional[Callable[[str, float], None]] = None) -> ProcessingResult:
         """
         Complete video processing pipeline
-        
+
         Args:
             source: Video URL (Bilibili/YouTube) or local video file path
             force_whisper: Force transcript generation via Whisper (ignore platform subtitles)
             custom_filename: Custom filename template
             skip_download: Skip video download (use existing downloaded video)
+            skip_transcript: Skip transcript generation (use existing transcript files)
             progress_callback: Progress callback function
             
         Returns:
@@ -233,10 +236,11 @@ class VideoOrchestrator:
             logger.info("⏱️  Step 2: Checking video duration...")
             needs_splitting = self.video_splitter.check_duration_needs_splitting(result.video_info)
             
+            splits_dir = video_root_dir / "splits"
+            splits_dir.mkdir(parents=True, exist_ok=True)
+
             if needs_splitting:
                 logger.info(f"🔧 Video duration > 20 minutes, splitting required")
-                splits_dir = video_root_dir / "splits"
-                splits_dir.mkdir(parents=True, exist_ok=True)
                 split_result = await self.video_splitter.split_video_async(
                     result.video_path,
                     subtitle_path,
@@ -246,23 +250,50 @@ class VideoOrchestrator:
                 result.was_split = True
                 result.video_parts = split_result['video_parts']
                 result.transcript_parts = split_result['transcript_parts']
+            else:
+                # Copy video and subtitle into splits dir for consistent layout
+                video_file = Path(result.video_path)
+                splits_video = splits_dir / video_file.name
+                if not splits_video.exists():
+                    shutil.copy2(str(video_file), str(splits_video))
+                    logger.info(f"📁 Copied video to splits dir: {splits_video.name}")
+                result.video_path = str(splits_video)
+
+                if subtitle_path and Path(subtitle_path).exists():
+                    sub_file = Path(subtitle_path)
+                    splits_sub = splits_dir / sub_file.name
+                    if not splits_sub.exists():
+                        shutil.copy2(str(sub_file), str(splits_sub))
+                        logger.info(f"📁 Copied subtitle to splits dir: {splits_sub.name}")
             
             # Step 3: Handle transcript generation
-            logger.info("📝 Step 3: Processing transcripts...")
-            transcript_result = await self.transcript_processor.process_transcripts(
-                subtitle_path,
-                result.video_path if not result.was_split else result.video_parts,
-                force_whisper,
-                progress_callback
-            )
-            
-            result.transcript_source = transcript_result['source']
-            if not result.was_split:
-                result.transcript_path = transcript_result['transcript_path']
+            if skip_transcript:
+                logger.info("📝 Step 3: Skipping transcript generation (--skip-transcript)")
+                existing_transcript = self._find_existing_transcript(result, video_root_dir)
+                if existing_transcript:
+                    result.transcript_source = existing_transcript['source']
+                    if not result.was_split:
+                        result.transcript_path = existing_transcript['transcript_path']
+                    else:
+                        result.transcript_parts = existing_transcript['transcript_parts']
+                else:
+                    raise Exception("No existing transcript found. Remove --skip-transcript to generate transcripts.")
             else:
-                # Transcript parts were already set during splitting if bilibili subtitles used
-                if transcript_result['source'] == 'whisper':
-                    result.transcript_parts = transcript_result['transcript_parts']
+                logger.info("📝 Step 3: Processing transcripts...")
+                transcript_result = await self.transcript_processor.process_transcripts(
+                    subtitle_path,
+                    result.video_path if not result.was_split else result.video_parts,
+                    force_whisper,
+                    progress_callback
+                )
+
+                result.transcript_source = transcript_result['source']
+                if not result.was_split:
+                    result.transcript_path = transcript_result['transcript_path']
+                else:
+                    # Transcript parts were already set during splitting if bilibili subtitles used
+                    if transcript_result['source'] == 'whisper':
+                        result.transcript_parts = transcript_result['transcript_parts']
             
             # Step 4: Analyze engaging moments (if not skipped and analyzer available)
             engaging_result = None
@@ -412,6 +443,65 @@ class VideoOrchestrator:
         """Find existing downloaded video for a URL"""
         return await find_existing_download(url, self.output_dir, progress_callback)
     
+    def _find_existing_transcript(self, result: ProcessingResult, video_root_dir: Path) -> Optional[Dict[str, Any]]:
+        """
+        Find existing transcript files for a video
+
+        Args:
+            result: ProcessingResult with video information
+            video_root_dir: Root directory for this video's outputs
+
+        Returns:
+            Dictionary with transcript info or None if not found
+        """
+        try:
+            video_path = Path(result.video_path)
+
+            if result.was_split:
+                # Look for split transcript parts in splits dir
+                splits_dir = video_root_dir / "splits"
+                if splits_dir.exists():
+                    transcript_parts = sorted(str(p) for p in splits_dir.glob("*.srt"))
+                    if transcript_parts:
+                        logger.info(f"   Found {len(transcript_parts)} existing transcript parts in: {splits_dir}")
+                        result.transcript_parts = transcript_parts
+                        return {
+                            'source': 'existing',
+                            'transcript_path': None,
+                            'transcript_parts': transcript_parts
+                        }
+
+                logger.warning(f"   No existing transcript parts found in: {splits_dir}")
+                return None
+            else:
+                # Look for single transcript file next to the video
+                for search_dir in [video_path.parent, video_root_dir]:
+                    for ext in ['.srt', '.txt', '.vtt', '.ass']:
+                        candidate = search_dir / f"{video_path.stem}{ext}"
+                        if candidate.exists():
+                            logger.info(f"   Found existing transcript: {candidate}")
+                            return {
+                                'source': 'existing',
+                                'transcript_path': str(candidate),
+                                'transcript_parts': []
+                            }
+
+                # Also search recursively under video_root_dir
+                for srt_file in video_root_dir.rglob("*.srt"):
+                    logger.info(f"   Found existing transcript: {srt_file}")
+                    return {
+                        'source': 'existing',
+                        'transcript_path': str(srt_file),
+                        'transcript_parts': []
+                    }
+
+                logger.warning(f"   No existing transcript found for: {video_path.name}")
+                return None
+
+        except Exception as e:
+            logger.error(f"Error finding existing transcript: {e}")
+            return None
+
     def _find_existing_analysis(self, result: ProcessingResult) -> Optional[Dict[str, Any]]:
         """
         Find existing engaging moments analysis file
@@ -696,8 +786,10 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
                        help='Output directory (default: processed_videos)')
     parser.add_argument('--force-whisper', action='store_true',
                        help='Force transcript generation via Whisper (ignore platform subtitles)')
-    parser.add_argument('--skip-download', action='store_true',
+    parser.add_argument('--skip-download', action='store_true', default=SKIP_DOWNLOAD,
                        help='Skip video download and use existing downloaded video')
+    parser.add_argument('--skip-transcript', action='store_true', default=SKIP_TRANSCRIPT,
+                       help='Skip transcript generation (use existing transcript files)')
     parser.add_argument('--skip-analysis', action='store_true',
                        help='Skip engaging moments analysis (can still generate clips from existing analysis file)')
     parser.add_argument('--use-background', action='store_true',
@@ -769,6 +861,7 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
             force_whisper=args.force_whisper,
             custom_filename=args.filename,
             skip_download=args.skip_download,
+            skip_transcript=args.skip_transcript,
             progress_callback=progress_callback
         )
         

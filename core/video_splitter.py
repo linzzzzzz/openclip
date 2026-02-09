@@ -189,11 +189,47 @@ class VideoSplitter:
         """Split video and subtitles by time duration"""
         print(f"🎯 Splitting by duration: {duration_minutes} minutes per part")
         
-        if not self.parse_srt_file(srt_path):
-            return False
+        # Check if subtitles are available
+        has_subtitles = bool(srt_path and os.path.exists(srt_path))
+        split_points = []
         
-        duration_seconds = duration_minutes * 60
-        split_points = self.split_by_duration(duration_seconds)
+        if has_subtitles:
+            if not self.parse_srt_file(srt_path):
+                return False
+            
+            duration_seconds = duration_minutes * 60
+            split_points = self.split_by_duration(duration_seconds)
+        else:
+            # No subtitles, split based on time using ffprobe
+            print("⚠️  No subtitles found, splitting based on time only")
+            import subprocess
+            import json
+            
+            # Get video duration using ffprobe
+            cmd = [
+                'ffprobe',
+                '-v', 'quiet',
+                '-print_format', 'json',
+                '-show_format',
+                video_path
+            ]
+            
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                info = json.loads(result.stdout)
+                total_duration = float(info['format']['duration'])
+                print(f"📊 Video duration: {total_duration:.1f} seconds")
+                
+                # Generate split points
+                duration_seconds = duration_minutes * 60
+                current_start = 0.0
+                while current_start < total_duration:
+                    end_time = min(current_start + duration_seconds, total_duration)
+                    split_points.append((current_start, end_time))
+                    current_start = end_time
+            except Exception as e:
+                print(f"❌ Error getting video duration: {e}")
+                return False
         
         # Get base filename without extension
         base_name = os.path.splitext(os.path.basename(video_path))[0]
@@ -217,27 +253,29 @@ class VideoSplitter:
             video_output = os.path.join(output_dir, f"{base_name}_part{i:02d}.mp4")
             video_success = self.split_video_ffmpeg(video_path, start_time, duration, video_output)
 
-            # Find subtitle segments for this time range
-            start_idx = 0
-            end_idx = len(self.subtitles) - 1
+            # Handle subtitles if available
+            if has_subtitles:
+                # Find subtitle segments for this time range
+                start_idx = 0
+                end_idx = len(self.subtitles) - 1
 
-            for j, subtitle in enumerate(self.subtitles):
-                subtitle_start = self.time_to_seconds(subtitle.start_time)
-                if subtitle_start >= start_time:
-                    start_idx = j
-                    break
+                for j, subtitle in enumerate(self.subtitles):
+                    subtitle_start = self.time_to_seconds(subtitle.start_time)
+                    if subtitle_start >= start_time:
+                        start_idx = j
+                        break
 
-            for j, subtitle in enumerate(self.subtitles):
-                subtitle_end = self.time_to_seconds(subtitle.end_time)
-                if subtitle_end <= end_time:
-                    end_idx = j
+                for j, subtitle in enumerate(self.subtitles):
+                    subtitle_end = self.time_to_seconds(subtitle.end_time)
+                    if subtitle_end <= end_time:
+                        end_idx = j
 
-            # Create subtitle part
-            if start_idx <= end_idx:
-                subtitle_output = self.create_subtitle_part(
-                    start_idx, end_idx, i, output_dir, base_name, start_time
-                )
-                print(f"📝 Created subtitle part: {os.path.basename(subtitle_output)}")
+                # Create subtitle part
+                if start_idx <= end_idx:
+                    subtitle_output = self.create_subtitle_part(
+                        start_idx, end_idx, i, output_dir, base_name, start_time
+                    )
+                    print(f"📝 Created subtitle part: {os.path.basename(subtitle_output)}")
             
             if video_success:
                 success_count += 1

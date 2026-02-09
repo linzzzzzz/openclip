@@ -49,3 +49,9 @@ WHISPER_MODEL: str = "base"
 
 # Maximum number of highlight clips to generate
 MAX_CLIPS: int = 5
+
+# Skip download by default (use existing files if available)
+SKIP_DOWNLOAD: bool = False
+
+# Skip transcript generation (use existing transcript files if available)
+SKIP_TRANSCRIPT: bool = False

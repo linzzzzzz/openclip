@@ -10,6 +10,7 @@ dependencies = [
     "yt-dlp @ git+https://github.com/yt-dlp/yt-dlp.git@master",
     "requests>=2.31.0",
     "streamlit>=1.30.0",
+    "openai-whisper>=20231117",
 ]
 
 [project.optional-dependencies]
