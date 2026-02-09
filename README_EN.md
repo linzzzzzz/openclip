@@ -2,11 +2,11 @@
 
 English | [简体中文](./README.md)
 
-A lightweight automated video processing pipeline that identifies and extracts the most engaging moments from long-form videos (especially livestream recordings). Uses AI-powered analysis to find highlights, generates clips, and adds artistic titles.
+A lightweight automated video processing pipeline that identifies and extracts the most engaging moments from long-form videos (especially talk-to-camera and livestream recordings). Uses AI-powered analysis to find highlights, generates clips, and adds titles and covers.
 
 ## 🎯 What It Does
 
-Give it a video URL or local file, and it handles the full pipeline: **Download → Transcribe → Split → AI Analysis → Clip Generation → Artistic Titles → Cover Images** — outputting the top 5 most engaging moments. Great for quickly extracting highlights from long livestreams or videos.
+Give it a video URL or local file, and it handles the full pipeline: **Download → Transcribe → Split → AI Analysis → Clip Generation → Titles and Covers** — outputting the most engaging moments. Great for quickly extracting highlights from long livestreams or videos.
 
 > 💡 **How is it different from AutoClip?** See the [comparison section](#-comparison-with-autoclip) to learn about OpenClip's lightweight design philosophy.
 
@@ -16,14 +16,12 @@ Give it a video URL or local file, and it handles the full pipeline: **Download 
 - **Smart Transcription**: Uses platform subtitles when available, falls back to Whisper
 - **Automatic Splitting**: Handles videos of any length by splitting into 20-minute parts
 - **AI Analysis**: Identifies engaging moments based on content, interaction, and entertainment value
-- **Bilingual Support**: Generate output in Chinese or English
-- **Clip Generation**: Extracts top 5 moments as standalone video clips
-- **Artistic Titles**: 10 professional title styles (fire, neon, crystal, metallic, etc.)
-- **Cover Images**: Auto-generates styled cover images for each clip
-- **Background Context**: Optional streamer/context information for better analysis
-- **Dual Interface Support**: Command-line interface and Streamlit web interface for different user needs
+- **Clip Generation**: Extracts the most engaging moments as standalone video clips
+- **Titles and Covers**: Adds custom titles and cover images to videos
+- **Background Context**: Optionally add background information (e.g., streamer names) for better analysis
+- **Triple Interface Support**: Streamlit web interface, Agent Skills, and command-line interface for different user needs
 - **Real-time Preview**: Streamlit interface provides real-time preview of generated content
-- **AI Agent Skill**: Built-in [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and [TRAE](https://www.trae.ai/) agent skills for processing videos with natural language
+- **Agent Skills**: Built-in [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and [TRAE](https://www.trae.ai/) agent skills for processing videos with natural language
 
 ## 📋 Prerequisites
 
@@ -76,18 +74,9 @@ uv run streamlit run streamlit_app.py
 
 Once the app starts, open your browser and visit the displayed URL (typically `http://localhost:8501`).
 
-**Streamlit Interface Features:**
-- ✅ Support for video URLs (Bilibili, YouTube) and local file uploads
-- ✅ Real-time progress bar and status updates
-- ✅ Intuitive form interface for all configuration options
-- ✅ Built-in API key management
-- ✅ 10 artistic title style selections
-- ✅ Real-time preview of generated clips and covers
-- ✅ Persistent processing result storage
-
 **Usage Flow:**
 1. Select input type (Video URL or Local File) in the sidebar
-2. Configure processing options (LLM provider, artistic style, etc.)
+2. Configure processing options (LLM provider, etc.)
 3. Click "Process Video" button to start processing
 4. View real-time progress and final results
 5. Preview generated clips and covers in the results section
@@ -101,7 +90,6 @@ If you use [Claude Code](https://docs.anthropic.com/en/docs/claude-code) or [TRA
 ```
 "Extract highlights from this video: https://www.bilibili.com/video/BV1234567890"
 "Process ~/Downloads/livestream.mp4 with neon glow style"
-"Analyze this YouTube video for engaging moments and generate clips"
 ```
 
 The agent automatically invokes the built-in skill to handle the full pipeline: downloading, transcription, analysis, clip generation, and title styling.
