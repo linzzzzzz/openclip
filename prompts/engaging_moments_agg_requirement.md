@@ -1,13 +1,13 @@
 # Top Engaging Moments Aggregation
 
 ## Task
-Review all the highlights from multiple video parts and identify the top 5 most engaging moments. Aggregate and rank them based on engagement potential, content quality, and viewer appeal.
+Review all the highlights from multiple video parts and identify the top {max_clips} most engaging moments. Aggregate and rank them based on engagement potential, content quality, and viewer appeal.
 
 ## Requirements
 
 ### Selection Criteria
-- Select exactly 5 moments (or fewer if less than 5 available)
-- Rank them from 1 to 5 based on engagement potential
+- Select exactly {max_clips} moments (or fewer if less than {max_clips} available)
+- Rank them from 1 to {max_clips} based on engagement potential
 - Focus on co-hosting segments and highly interactive moments as they are usually most engaging
 - Ignore emojis in titles when evaluating
 - Consider engagement scores and content quality
@@ -42,7 +42,7 @@ Return your response as a JSON object following this exact structure:
       "tags": ["co-hosting", "interactive", "humorous", "live-chemistry"]
     }
   ],
-  "total_moments": 5,
+  "total_moments": {max_clips},
   "analysis_timestamp": "2024-01-01T12:00:00Z",
   "aggregation_criteria": "Selected based on engagement score, duration, and content quality",
   "analysis_summary": {
@@ -59,7 +59,7 @@ Return your response as a JSON object following this exact structure:
         "end_time": "00:06:30",
         "duration": 70
       },
-      "why_engaging": "虽然未进入前5，但仍具有一定娱乐价值"
+      "why_engaging": "虽然未进入前{max_clips}，但仍具有一定娱乐价值"
     }
   ]
 }
@@ -68,7 +68,7 @@ Return your response as a JSON object following this exact structure:
 ## Field Specifications
 
 ### Required Fields for Each Top Moment:
-- **rank**: Integer from 1 to 5
+- **rank**: Integer from 1 to {max_clips}
 - **title**: Original compelling title from source moment
 - **timing**: Object containing:
   - **video_part**: Source part identifier (e.g., "part01", "part02")
@@ -86,7 +86,7 @@ Return your response as a JSON object following this exact structure:
 - **recommendation**: Brief summary of the content's value
 
 ### Optional Honorable Mentions:
-- Include 2-3 additional moments that didn't make top 5 but are still noteworthy
+- Include 2-3 additional moments that didn't make top {max_clips} but are still noteworthy
 - Use same structure as top moments but without rank
 
 ## Analysis Instructions
@@ -96,7 +96,7 @@ Return your response as a JSON object following this exact structure:
    - Content quality and entertainment value
    - Interaction level and co-hosting elements
    - Duration appropriateness and clip potential
-3. Select and rank the top 5 moments for maximum viewer appeal
+3. Select and rank the top {max_clips} moments for maximum viewer appeal
 4. Preserve all original timing and content information
 5. Convert SRT timestamps (HH:MM:SS,mmm) to simple time format (HH:MM:SS or MM:SS)
 6. Create comprehensive analysis summary with themes and recommendations

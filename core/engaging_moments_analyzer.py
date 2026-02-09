@@ -12,6 +12,7 @@ from datetime import datetime
 import re
 
 from core.llm.qwen_api_client import QwenAPIClient, QwenMessage
+from core.config import MAX_CLIPS
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 class EngagingMomentsAnalyzer:
     """Analyzes video transcripts to identify engaging moments using LLM APIs"""
     
-    def __init__(self, api_key: Optional[str] = None, provider: str = "qwen", use_background: bool = False, language: str = "zh", debug: bool = False, custom_prompt_file: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, provider: str = "qwen", use_background: bool = False, language: str = "zh", debug: bool = False, custom_prompt_file: Optional[str] = None, max_clips: int = MAX_CLIPS):
         """
         Initialize the analyzer
         
@@ -32,6 +33,7 @@ class EngagingMomentsAnalyzer:
             custom_prompt_file: Path to custom prompt file (optional)
         """
         self.custom_prompt_file = custom_prompt_file
+        self.max_clips = max_clips
         self.provider = provider.lower()
         self.prompts_dir = Path("prompts")
         self.use_background = use_background
@@ -293,10 +295,10 @@ class EngagingMomentsAnalyzer:
             prompt_parts.append(self.background_content)
             prompt_parts.append("\n\n")
 
-        prompt_parts.append(prompt_template)
+        prompt_parts.append(prompt_template.replace("{max_clips}", str(self.max_clips)))
         prompt_parts.append(f"\n\n## All Engaging Moments Data\n\n")
         prompt_parts.append(moments_context)
-        prompt_parts.append("\n\nPlease select and rank the top 5 most engaging moments following the requirements above.")
+        prompt_parts.append(f"\n\nPlease select and rank the top {self.max_clips} most engaging moments following the requirements above.")
 
         return "".join(prompt_parts)
 
@@ -560,14 +562,14 @@ Please fix the JSON and return ONLY the valid JSON, no explanations:
     
     async def aggregate_top_moments(self, highlights_files: List[str], output_dir: str) -> Dict[str, Any]:
         """
-        Aggregate engaging moments from multiple parts and select top 5
-        
+        Aggregate engaging moments from multiple parts and select top moments
+
         Args:
             highlights_files: List of paths to highlights JSON files
             output_dir: Directory to save the aggregated result
-            
+
         Returns:
-            Dictionary with top 5 engaging moments
+            Dictionary with top engaging moments
         """
         logger.info("🔄 Aggregating top engaging moments...")
 
@@ -874,10 +876,10 @@ Moment {i}:
         }
     
     def _create_fallback_aggregation(self, all_moments: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Create fallback aggregation without sorting - just take first 5 moments"""
-        
-        # Take first 5 moments (no sorting - LLM should have already ranked them)
-        top_moments = all_moments[:5]
+        """Create fallback aggregation without sorting - just take first N moments"""
+
+        # Take first N moments (no sorting - LLM should have already ranked them)
+        top_moments = all_moments[:self.max_clips]
         
         # Add ranking if not present
         for i, moment in enumerate(top_moments):
@@ -888,7 +890,7 @@ Moment {i}:
             "top_engaging_moments": top_moments,
             "total_moments": len(top_moments),
             "analysis_timestamp": datetime.now().isoformat() + 'Z',
-            "aggregation_criteria": "Fallback selection - first 5 moments",
+            "aggregation_criteria": f"Fallback selection - first {self.max_clips} moments",
             "analysis_summary": {
                 "highest_engagement_themes": [],
                 "total_engaging_content_time": "N/A",

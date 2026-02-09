@@ -14,7 +14,7 @@ from typing import Optional, Dict, Any
 
 # Import the video orchestrator
 from video_orchestrator import VideoOrchestrator
-from core.config import API_KEY_ENV_VARS, MAX_DURATION_MINUTES, WHISPER_MODEL
+from core.config import API_KEY_ENV_VARS, MAX_DURATION_MINUTES, WHISPER_MODEL, MAX_CLIPS
 
 # Set page config
 st.set_page_config(
@@ -44,9 +44,10 @@ TRANSLATIONS = {
         'output_dir': 'Output Directory',
         'use_background': 'Use Background Info',
         'use_custom_prompt': 'Use Custom Highlight Analysis Prompt',
-        'force_whisper': 'Force Whisper',
+        'force_whisper': 'Force Whisper to Generate Subtitles',
         'generate_clips': 'Generate Clips',
-        'add_titles': 'Add Titles',
+        'max_clips': 'Max Clips',
+        'add_titles': 'Add Video Top Banner Title',
         'generate_cover': 'Generate Cover',
         'process_video': '🎬 Process Video',
         'background_info': 'Background Information',
@@ -93,6 +94,7 @@ TRANSLATIONS = {
         'enter_output_dir': 'Directory to save processed videos',
         'force_whisper_help': 'Force transcript generation via Whisper (ignore platform subtitles)',
         'generate_clips_help': 'Generate video clips for engaging moments',
+        'max_clips_help': 'Maximum number of highlight clips to generate',
         'add_titles_help': 'Add artistic titles to video clips',
         'generate_cover_help': 'Generate cover image for the video',
         'use_background_help': 'Use background information from prompts/background/background.md',
@@ -112,9 +114,10 @@ TRANSLATIONS = {
         'output_dir': '输出目录',
         'use_background': '使用背景信息提示词',
         'use_custom_prompt': '使用自定义高光分析提示词',
-        'force_whisper': '强制使用 Whisper',
-        'generate_clips': '生成片段',
-        'add_titles': '添加标题',
+        'force_whisper': '强制使用Whisper生成字幕',
+        'generate_clips': '生成高光片段',
+        'max_clips': '最大片段数',
+        'add_titles': '添加视频上方横幅标题',
         'generate_cover': '生成封面',
         'process_video': '🎬 处理视频',
         'background_info': '背景信息',
@@ -161,6 +164,7 @@ TRANSLATIONS = {
         'enter_output_dir': '保存处理后视频的目录',
         'force_whisper_help': '强制通过 Whisper 生成字幕（忽略平台字幕）',
         'generate_clips_help': '为精彩时刻生成视频片段',
+        'max_clips_help': '生成高光片段的最大数量',
         'add_titles_help': '为视频片段添加艺术标题',
         'generate_cover_help': '为视频生成封面图像',
         'use_background_help': '使用 prompts/background/background.md 中的背景信息',
@@ -176,6 +180,7 @@ DEFAULT_DATA = {
     'use_custom_prompt': False,
     'force_whisper': False,
     'generate_clips': True,
+    'max_clips': MAX_CLIPS,
     'add_titles': True,
     'generate_cover': True,
     # Other form elements
@@ -201,7 +206,12 @@ if not os.path.exists(FILE_PATH):
 
 def load_from_file():
     with open(FILE_PATH, "r") as f:
-        return json.load(f)
+        saved = json.load(f)
+    # Backfill any new default keys missing from older saved files
+    for key, value in DEFAULT_DATA.items():
+        if key not in saved:
+            saved[key] = value
+    return saved
 
 def save_to_file(data):
     with open(FILE_PATH, "w") as f:
@@ -257,7 +267,7 @@ def display_results(result):
                     
                     if isinstance(moments, list):
                         st.write(f"Found {len(moments)} engaging moments")
-                        for i, moment in enumerate(moments[:5]):  # Show top 5
+                        for i, moment in enumerate(moments):
                             with st.container():
                                 st.subheader(f"Rank {i+1}: {moment.get('title', 'Untitled')}")
                                 if 'description' in moment:
@@ -474,7 +484,47 @@ with st.sidebar:
     )
     data['language'] = language
 
+    # Clip generation options (always enabled)
+    generate_clips = True
+    data['generate_clips'] = generate_clips
+
+    max_clips = st.number_input(
+        t['max_clips'],
+        min_value=1,
+        max_value=20,
+        value=int(data['max_clips']),
+        step=1,
+        help=t['max_clips_help'],
+        key=f"max_clips_{st.session_state.reset_counter}"
+    )
+    data['max_clips'] = max_clips
+
+    # Output directory
+    output_dir = st.text_input(
+        t['output_dir'],
+        value=data['output_dir'],
+        help=t['enter_output_dir'],
+        key=f"output_dir_{st.session_state.reset_counter}"
+    )
+    data['output_dir'] = output_dir
+
     # Checkboxes for additional options
+    add_titles = st.checkbox(
+        t['add_titles'],
+        value=data['add_titles'],
+        help=t['add_titles_help'],
+        key=f"add_titles_{st.session_state.reset_counter}"
+    )
+    data['add_titles'] = add_titles
+    
+    generate_cover = st.checkbox(
+        t['generate_cover'],
+        value=data['generate_cover'],
+        help=t['generate_cover_help'],
+        key=f"generate_cover_{st.session_state.reset_counter}"
+    )
+    data['generate_cover'] = generate_cover
+
     use_background = st.checkbox(
         t['use_background'],
         value=data['use_background'],
@@ -508,40 +558,6 @@ with st.sidebar:
         key=f"force_whisper_{st.session_state.reset_counter}"
     )
     data['force_whisper'] = force_whisper
-    
-    # Clip generation options
-    generate_clips = st.checkbox(
-        t['generate_clips'],
-        value=data['generate_clips'],
-        help=t['generate_clips_help'],
-        key=f"generate_clips_{st.session_state.reset_counter}"
-    )
-    data['generate_clips'] = generate_clips
-    
-    add_titles = st.checkbox(
-        t['add_titles'],
-        value=data['add_titles'],
-        help=t['add_titles_help'],
-        key=f"add_titles_{st.session_state.reset_counter}"
-    )
-    data['add_titles'] = add_titles
-    
-    generate_cover = st.checkbox(
-        t['generate_cover'],
-        value=data['generate_cover'],
-        help=t['generate_cover_help'],
-        key=f"generate_cover_{st.session_state.reset_counter}"
-    )
-    data['generate_cover'] = generate_cover
-    
-    # Output directory
-    output_dir = st.text_input(
-        t['output_dir'],
-        value=data['output_dir'],
-        help=t['enter_output_dir'],
-        key=f"output_dir_{st.session_state.reset_counter}"
-    )
-    data['output_dir'] = output_dir
 
     st.caption(t['advanced_config_notice'])
 
@@ -649,7 +665,8 @@ if st.button(t['process_video'], disabled=not video_source):
                     generate_cover=generate_cover,
                     language=language,
                     debug=False,
-                    custom_prompt_file=custom_prompt_file
+                    custom_prompt_file=custom_prompt_file,
+                    max_clips=max_clips
                 )
                 
                 # Progress callback function

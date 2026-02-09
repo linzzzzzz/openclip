@@ -31,7 +31,7 @@ from core.video_utils import (
     ResultsFormatter,
     find_existing_download
 )
-from core.config import DEFAULT_LLM_PROVIDER, API_KEY_ENV_VARS, MAX_DURATION_MINUTES, WHISPER_MODEL
+from core.config import DEFAULT_LLM_PROVIDER, API_KEY_ENV_VARS, MAX_DURATION_MINUTES, WHISPER_MODEL, MAX_CLIPS
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -58,7 +58,8 @@ class VideoOrchestrator:
                 generate_cover: bool = True,
                 language: str = "zh",
                 debug: bool = False,
-                custom_prompt_file: Optional[str] = None):
+                custom_prompt_file: Optional[str] = None,
+                max_clips: int = MAX_CLIPS):
         """
         Initialize the video orchestrator
 
@@ -103,12 +104,13 @@ class VideoOrchestrator:
         if not skip_analysis and api_key:
             try:
                 self.engaging_moments_analyzer = EngagingMomentsAnalyzer(
-                    api_key=api_key, 
+                    api_key=api_key,
                     provider=self.llm_provider,
                     use_background=use_background,
                     language=language,
                     debug=self.debug,
-                    custom_prompt_file=custom_prompt_file
+                    custom_prompt_file=custom_prompt_file,
+                    max_clips=max_clips
                 )
                 logger.info(f"🧠 Engaging moments analysis: enabled (provider: {self.llm_provider}, language: {language}, background: {'yes' if use_background else 'no'})")
             except ValueError as e:
@@ -492,7 +494,7 @@ class VideoOrchestrator:
                         progress_callback(f"Analyzed part {i+1}/{len(result.transcript_parts)}", progress)
                 
                 # Aggregate top moments
-                logger.info("🔄 Aggregating top 5 engaging moments...")
+                logger.info(f"🔄 Aggregating top {self.engaging_moments_analyzer.max_clips} engaging moments...")
                 top_moments = await self.engaging_moments_analyzer.aggregate_top_moments(
                     highlights_files, str(transcript_dir)
                 )
@@ -706,6 +708,8 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
                        help='Disable adding titles to clips')
     parser.add_argument('--no-cover', action='store_true',
                        help='Disable cover image generation')
+    parser.add_argument('--max-clips', type=int, default=MAX_CLIPS,
+                       help=f'Maximum number of highlight clips to generate (default: {MAX_CLIPS})')
     parser.add_argument('--artistic-style', default='fire_flame',
                        choices=['gradient_3d', 'neon_glow', 'metallic_gold', 'rainbow_3d', 'crystal_ice',
                                'fire_flame', 'metallic_silver', 'glowing_plasma', 'stone_carved', 'glass_transparent'],
@@ -748,7 +752,8 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
         use_background=args.use_background,
         generate_cover=not args.no_cover,
         language=args.language,
-        debug=args.debug
+        debug=args.debug,
+        max_clips=args.max_clips
     )
     
     def progress_callback(status: str, progress: float):

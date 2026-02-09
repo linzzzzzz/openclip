@@ -46,3 +46,6 @@ MAX_DURATION_MINUTES: float = 20.0
 # Whisper model for transcript generation
 # Options: tiny, base, small, medium, large, turbo
 WHISPER_MODEL: str = "base"
+
+# Maximum number of highlight clips to generate
+MAX_CLIPS: int = 5
