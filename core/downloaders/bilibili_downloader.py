@@ -553,6 +553,10 @@ class ImprovedBilibiliDownloader:
     
     def _create_progress_hook(self, progress_callback: Callable[[str, float], None]):
         """Create progress callback hook"""
+        # Track highest progress seen so the bar never jumps backwards
+        # when yt-dlp starts downloading a new file (audio/video/subs).
+        state = {'max_progress': 0.0}
+
         def progress_hook(d):
             if d['status'] == 'downloading':
                 if 'total_bytes' in d and d['total_bytes']:
@@ -565,14 +569,16 @@ class ImprovedBilibiliDownloader:
                         progress = 0
                 else:
                     progress = 0
-                
+
+                state['max_progress'] = max(state['max_progress'], progress)
                 speed = d.get('_speed_str', '')
                 eta = d.get('_eta_str', '')
-                status = f"Downloading... {speed} ETA: {eta}"
-                progress_callback(status, progress)
+                status = f"{speed} ETA: {eta}"
+                progress_callback(status, state['max_progress'])
             elif d['status'] == 'finished':
-                progress_callback("Processing...", 95)
-        
+                state['max_progress'] = max(state['max_progress'], 95)
+                progress_callback("Processing...", state['max_progress'])
+
         return progress_hook
     
     def _find_downloaded_video_in_dir(self, video_dir: Path, title: str) -> Optional[Path]:

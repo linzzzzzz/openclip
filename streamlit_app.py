@@ -8,6 +8,7 @@ import streamlit as st
 import asyncio
 import os
 import json
+import re
 import time
 import threading
 from pathlib import Path
@@ -678,8 +679,10 @@ if st.button(t['process_video'], disabled=not video_source):
 
                 def progress_callback(status: str, progress: float):
                     add_script_run_ctx(threading.current_thread(), _ctx)
+                    # Strip ANSI escape codes from yt-dlp's colored output
+                    clean_status = re.sub(r'\x1b\[[0-9;]*m', '', status)
                     progress_bar.progress(min(int(progress), 100))
-                    status_text.text(f"🔄 {status} ({progress:.1f}%)")
+                    status_text.text(f"🔄 {clean_status} ({progress:.1f}%)")
                 
                 # Process video
                 status_text.text("Starting video processing...")
