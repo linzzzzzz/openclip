@@ -10,6 +10,10 @@ Give it a video URL or local file, and it handles the full pipeline: **Download 
 
 > 💡 **How is it different from AutoClip?** See the [comparison section](#-comparison-with-autoclip) to learn about OpenClip's lightweight design philosophy.
 
+## 🎬 Demo
+
+![OpenClip Demo](demo/demo.gif)
+
 ## ✨ Features
 
 - **Flexible Input**: Bilibili/YouTube URLs or local video files

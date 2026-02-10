@@ -189,7 +189,7 @@ class TranscriptProcessor:
         for i, video_file in enumerate(video_files):
             # Update progress
             if progress_callback:
-                base_progress = 50 + (i / total_files) * 40  # 50-90% range
+                base_progress = 35 + (i / total_files) * 13  # 35-48% range
                 progress_callback(f"Generating transcript {i+1}/{total_files}...", base_progress)
             
             logger.info(f"🎙️  Generating transcript for: {Path(video_file).name}")

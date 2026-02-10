@@ -13,7 +13,6 @@ import time
 import threading
 from pathlib import Path
 from typing import Optional, Dict, Any
-from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 
 # Import the video orchestrator
 from video_orchestrator import VideoOrchestrator
@@ -235,6 +234,14 @@ t = TRANSLATIONS[current_lang]
 # Initialize reset counter in session state
 if 'reset_counter' not in st.session_state:
     st.session_state.reset_counter = 0
+
+# Initialize processing state
+if 'processing' not in st.session_state:
+    st.session_state.processing = False
+    st.session_state.cancel_event = threading.Event()
+    st.session_state.processing_thread = None
+    st.session_state.processing_outcome = {'result': None, 'error': None}
+    st.session_state.progress_state = {'status': '', 'progress': 0}
 
 # Track if we just processed a video
 just_processed = False
@@ -635,92 +642,168 @@ if use_custom_prompt:
     if custom_prompt_file and Path(custom_prompt_file).exists():
         st.info(f"{t['current_saved_prompt']} {Path(custom_prompt_file).name}")
 
-# Progress bar and status
-progress_bar = st.progress(0)
+# Progress bar and status — restore last known state so widgets don't reset on rerun
+_ps = st.session_state.progress_state
+progress_bar = st.progress(min(int(_ps['progress']), 100))
 status_text = st.empty()
+if _ps['status']:
+    status_text.text(_ps['status'])
 
-# Process Video button
-if st.button(t['process_video'], disabled=not video_source):
+# Process Video / Cancel buttons
+btn_col1, btn_col2 = st.columns([3, 1])
+is_processing = st.session_state.processing
+
+with btn_col1:
+    process_clicked = st.button(
+        t['process_video'],
+        disabled=not video_source or is_processing
+    )
+
+with btn_col2:
+    cancel_clicked = st.button(
+        t['cancel'],
+        disabled=not is_processing
+    )
+
+# --- Handle Cancel ---
+if cancel_clicked and is_processing:
+    st.session_state.cancel_event.set()
+    status_text.text("⏹️ Cancelling...")
+
+# --- Handle Start ---
+if process_clicked and not is_processing:
     if not video_source:
         st.error("Please provide a video URL or upload a file")
     else:
-        try:
-            # Get API key from input or environment
-            if not api_key:
-                api_key = os.getenv(api_key_env_var)
-            
-            if not api_key:
-                st.error(f"Please provide {llm_provider.upper()} API key or set the {api_key_env_var} environment variable")
-            else:
-                # Initialize orchestrator
-                orchestrator = VideoOrchestrator(
-                    output_dir=output_dir,
-                    max_duration_minutes=MAX_DURATION_MINUTES,
-                    whisper_model=WHISPER_MODEL,
-                    browser="firefox",
-                    api_key=api_key,
-                    llm_provider=llm_provider,
-                    skip_analysis=False,
-                    generate_clips=generate_clips,
-                    add_titles=add_titles,
-                    artistic_style=artistic_style,
-                    use_background=use_background,
-                    generate_cover=generate_cover,
-                    language=language,
-                    debug=False,
-                    custom_prompt_file=custom_prompt_file,
-                    max_clips=max_clips
-                )
-                
-                # Progress callback function
-                # Capture Streamlit's ScriptRunContext so callbacks from
-                # executor threads can update the UI without warnings.
-                _ctx = get_script_run_ctx()
+        # Get API key from input or environment
+        resolved_api_key = api_key or os.getenv(api_key_env_var)
 
-                def progress_callback(status: str, progress: float):
-                    add_script_run_ctx(threading.current_thread(), _ctx)
-                    # Strip ANSI escape codes from yt-dlp's colored output
-                    clean_status = re.sub(r'\x1b\[[0-9;]*m', '', status)
-                    progress_bar.progress(min(int(progress), 100))
-                    status_text.text(f"🔄 {clean_status} ({progress:.1f}%)")
-                
-                # Process video
-                status_text.text("Starting video processing...")
-                
-                # Run async process_video function
-                import asyncio
-                result = asyncio.run(orchestrator.process_video(
-                    video_source,
-                    force_whisper=force_whisper,
-                    skip_download=False,
-                    progress_callback=progress_callback
-                ))
-                
-                # Save result to file
-                data['processing_result'] = {
-                    'success': result.success,
-                    'error_message': getattr(result, 'error_message', None),
-                    'processing_time': getattr(result, 'processing_time', None),
-                    'video_info': getattr(result, 'video_info', None),
-                    'transcript_source': getattr(result, 'transcript_source', None),
-                    'engaging_moments_analysis': getattr(result, 'engaging_moments_analysis', None),
-                    'clip_generation': getattr(result, 'clip_generation', None),
-                    'title_addition': getattr(result, 'title_addition', None),
-                    'cover_generation': getattr(result, 'cover_generation', None)
-                }
-                save_to_file(data)
-                
-                # Display results
-                st.header("📊 Results")
-                display_results(result)
-                
-                # Mark that we just processed a video
-                just_processed = True
-                    
-        except Exception as e:
-            st.error(f"❌ Unexpected error: {str(e)}")
-            import traceback
-            st.code(traceback.format_exc())
+        if not resolved_api_key:
+            st.error(f"Please provide {llm_provider.upper()} API key or set the {api_key_env_var} environment variable")
+        else:
+            # Reset cancel event and state
+            st.session_state.cancel_event = threading.Event()
+            st.session_state.processing_outcome = {'result': None, 'error': None}
+            st.session_state.progress_state = {'status': '', 'progress': 0}
+
+            _cancel_event = st.session_state.cancel_event
+            # Grab direct references so the background thread can
+            # mutate dicts in-place without needing st.session_state.
+            _progress = st.session_state.progress_state
+            _outcome = st.session_state.processing_outcome
+
+            # Build progress callback with cancellation check.
+            # Mutates _progress dict in-place — the main thread reads
+            # the same object on each rerun to render the widgets.
+            def progress_callback(status: str, progress: float):
+                if _cancel_event.is_set():
+                    raise Exception("Processing cancelled by user")
+                clean_status = re.sub(r'\x1b\[[0-9;]*m', '', status)
+                _progress['status'] = f"🔄 {clean_status} ({progress:.1f}%)"
+                _progress['progress'] = progress
+
+            # Snapshot all parameters for the background thread
+            _params = dict(
+                output_dir=output_dir,
+                max_duration_minutes=MAX_DURATION_MINUTES,
+                whisper_model=WHISPER_MODEL,
+                api_key=resolved_api_key,
+                llm_provider=llm_provider,
+                generate_clips=generate_clips,
+                add_titles=add_titles,
+                artistic_style=artistic_style,
+                use_background=use_background,
+                generate_cover=generate_cover,
+                language=language,
+                custom_prompt_file=custom_prompt_file,
+                max_clips=max_clips,
+                video_source=video_source,
+                force_whisper=force_whisper,
+            )
+
+            def _run_processing():
+                try:
+                    p = _params
+                    orchestrator = VideoOrchestrator(
+                        output_dir=p['output_dir'],
+                        max_duration_minutes=p['max_duration_minutes'],
+                        whisper_model=p['whisper_model'],
+                        browser="firefox",
+                        api_key=p['api_key'],
+                        llm_provider=p['llm_provider'],
+                        skip_analysis=False,
+                        generate_clips=p['generate_clips'],
+                        add_titles=p['add_titles'],
+                        artistic_style=p['artistic_style'],
+                        use_background=p['use_background'],
+                        generate_cover=p['generate_cover'],
+                        language=p['language'],
+                        debug=False,
+                        custom_prompt_file=p['custom_prompt_file'],
+                        max_clips=p['max_clips'],
+                    )
+                    result = asyncio.run(orchestrator.process_video(
+                        p['video_source'],
+                        force_whisper=p['force_whisper'],
+                        skip_download=False,
+                        progress_callback=progress_callback,
+                    ))
+                    _outcome['result'] = result
+                except Exception as e:
+                    _outcome['error'] = e
+
+            thread = threading.Thread(target=_run_processing, daemon=True)
+            st.session_state.processing_thread = thread
+            st.session_state.processing = True
+            status_text.text("Starting video processing...")
+            thread.start()
+            st.rerun()
+
+# --- Polling loop while processing ---
+if is_processing:
+    thread = st.session_state.processing_thread
+    if thread is not None and thread.is_alive():
+        time.sleep(0.5)
+        st.rerun()
+    else:
+        # Thread finished — update state and rerun so buttons re-render correctly
+        st.session_state.processing = False
+        st.rerun()
+
+# --- Handle finished processing result (runs on the rerun after thread completes) ---
+_outcome = st.session_state.processing_outcome
+_finished_result = _outcome['result']
+_finished_error = _outcome['error']
+if not is_processing and (_finished_result is not None or _finished_error is not None):
+    # Clear stored outcome so this block only runs once
+    _outcome['result'] = None
+    _outcome['error'] = None
+
+    if _finished_error is not None:
+        st.error(f"❌ Unexpected error: {str(_finished_error)}")
+    elif _finished_result is not None:
+        if getattr(_finished_result, 'error_message', None) and 'cancelled' in _finished_result.error_message.lower():
+            st.warning("⏹️ Processing was cancelled.")
+        elif _finished_result.success:
+            # Save result to file
+            data['processing_result'] = {
+                'success': _finished_result.success,
+                'error_message': getattr(_finished_result, 'error_message', None),
+                'processing_time': getattr(_finished_result, 'processing_time', None),
+                'video_info': getattr(_finished_result, 'video_info', None),
+                'transcript_source': getattr(_finished_result, 'transcript_source', None),
+                'engaging_moments_analysis': getattr(_finished_result, 'engaging_moments_analysis', None),
+                'clip_generation': getattr(_finished_result, 'clip_generation', None),
+                'title_addition': getattr(_finished_result, 'title_addition', None),
+                'cover_generation': getattr(_finished_result, 'cover_generation', None),
+            }
+            save_to_file(data)
+
+            st.header("📊 Results")
+            display_results(_finished_result)
+            just_processed = True
+        else:
+            st.error(f"❌ Processing failed: {getattr(_finished_result, 'error_message', 'Unknown error')}")
 
 
 

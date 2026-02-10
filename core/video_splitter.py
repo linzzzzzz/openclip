@@ -362,7 +362,7 @@ class VideoSplitter:
         """
 
         if progress_callback:
-            progress_callback("Splitting video into parts...", 35)
+            progress_callback("Splitting video into parts...", 30)
 
         base_name = Path(video_path).stem
 

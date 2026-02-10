@@ -416,8 +416,8 @@ class ProgressCallbackManager:
     def create_whisper_progress_callback(progress_callback: Optional[callable],
                                        current_file: int,
                                        total_files: int,
-                                       start_percent: float = 60,
-                                       end_percent: float = 95) -> float:
+                                       start_percent: float = 35,
+                                       end_percent: float = 48) -> float:
         """Create progress update for Whisper transcription"""
         if not progress_callback:
             return 0

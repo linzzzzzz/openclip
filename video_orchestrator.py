@@ -324,7 +324,7 @@ class VideoOrchestrator:
             if self.clip_generator and engaging_result and engaging_result.get('aggregated_file'):
                 logger.info("🎬 Step 5: Generating clips from engaging moments...")
                 if progress_callback:
-                    progress_callback("Generating video clips...", 85)
+                    progress_callback("Generating video clips...", 70)
                 
                 # Determine video directory
                 if result.was_split and result.video_parts:
@@ -355,7 +355,7 @@ class VideoOrchestrator:
                 if self.title_adder and clip_result.get('success'):
                     logger.info("🎨 Step 6: Adding artistic titles to clips...")
                     if progress_callback:
-                        progress_callback("Adding artistic titles...", 92)
+                        progress_callback("Adding artistic titles...", 80)
                     
                     # Update title adder output dir
                     self.title_adder.output_dir = video_clips_with_titles_dir
@@ -373,7 +373,7 @@ class VideoOrchestrator:
             if self.cover_generator and engaging_result and engaging_result.get('aggregated_file'):
                 logger.info("🖼️  Step 7: Generating cover images...")
                 if progress_callback:
-                    progress_callback("Generating cover images...", 95)
+                    progress_callback("Generating cover images...", 90)
                 
                 # Pass the video-specific clip directory to cover generation
                 cover_result = self._generate_cover_image(result, engaging_result, video_clips_dir, video_titles_dir)
@@ -568,7 +568,7 @@ class VideoOrchestrator:
         """
         try:
             if progress_callback:
-                progress_callback("Analyzing engaging moments...", 75)
+                progress_callback("Analyzing engaging moments...", 50)
             
             highlights_files = []
             
@@ -591,7 +591,7 @@ class VideoOrchestrator:
                     highlights_files.append(str(highlights_file))
                     
                     if progress_callback:
-                        progress = 75 + (i + 1) * 15 / len(result.transcript_parts)
+                        progress = 50 + (i + 1) * 10 / len(result.transcript_parts)
                         progress_callback(f"Analyzed part {i+1}/{len(result.transcript_parts)}", progress)
                 
                 # Aggregate top moments
