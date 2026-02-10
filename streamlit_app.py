@@ -9,8 +9,10 @@ import asyncio
 import os
 import json
 import time
+import threading
 from pathlib import Path
 from typing import Optional, Dict, Any
+from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 
 # Import the video orchestrator
 from video_orchestrator import VideoOrchestrator
@@ -670,7 +672,12 @@ if st.button(t['process_video'], disabled=not video_source):
                 )
                 
                 # Progress callback function
+                # Capture Streamlit's ScriptRunContext so callbacks from
+                # executor threads can update the UI without warnings.
+                _ctx = get_script_run_ctx()
+
                 def progress_callback(status: str, progress: float):
+                    add_script_run_ctx(threading.current_thread(), _ctx)
                     progress_bar.progress(min(int(progress), 100))
                     status_text.text(f"🔄 {status} ({progress:.1f}%)")
                 

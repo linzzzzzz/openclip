@@ -722,6 +722,38 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/35/8e/d36f8880bcf18ec026a55807d02fe4c7357da9f25aebd92f85178000c0dc/openai_whisper-20250625.tar.gz", hash = "sha256:37a91a3921809d9f44748ffc73c0a55c9f366c85a3ef5c2ae0cc09540432eb96", size = 803191, upload-time = "2025-06-26T01:06:13.34Z" }
 
 [[package]]
+name = "openclip"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "imageio-ffmpeg" },
+    { name = "moviepy" },
+    { name = "openai-whisper" },
+    { name = "requests" },
+    { name = "streamlit" },
+    { name = "yt-dlp" },
+]
+
+[package.optional-dependencies]
+test = [
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "imageio-ffmpeg", specifier = ">=0.4.0" },
+    { name = "moviepy", specifier = ">=1.0.3" },
+    { name = "openai-whisper", specifier = ">=20231117" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=8.0.0" },
+    { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.23.0" },
+    { name = "requests", specifier = ">=2.31.0" },
+    { name = "streamlit", specifier = ">=1.30.0" },
+    { name = "yt-dlp", git = "https://github.com/yt-dlp/yt-dlp.git?rev=master" },
+]
+provides-extras = ["test"]
+
+[[package]]
 name = "packaging"
 version = "26.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1564,38 +1596,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/db/d9/c495884c6e548fce18a8f40568ff120bc3a4b7b99813081c8ac0c936fa64/watchdog-6.0.0-py3-none-win_amd64.whl", hash = "sha256:cbafb470cf848d93b5d013e2ecb245d4aa1c8fd0504e863ccefa32445359d680", size = 79070, upload-time = "2024-11-01T14:07:10.686Z" },
     { url = "https://files.pythonhosted.org/packages/33/e8/e40370e6d74ddba47f002a32919d91310d6074130fe4e17dabcafc15cbf1/watchdog-6.0.0-py3-none-win_ia64.whl", hash = "sha256:a1914259fa9e1454315171103c6a30961236f508b9b623eae470268bbcc6a22f", size = 79067, upload-time = "2024-11-01T14:07:11.845Z" },
 ]
-
-[[package]]
-name = "whisper-env"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "imageio-ffmpeg" },
-    { name = "moviepy" },
-    { name = "openai-whisper" },
-    { name = "requests" },
-    { name = "streamlit" },
-    { name = "yt-dlp" },
-]
-
-[package.optional-dependencies]
-test = [
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "imageio-ffmpeg", specifier = ">=0.4.0" },
-    { name = "moviepy", specifier = ">=1.0.3" },
-    { name = "openai-whisper", specifier = ">=20231117" },
-    { name = "pytest", marker = "extra == 'test'", specifier = ">=8.0.0" },
-    { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.23.0" },
-    { name = "requests", specifier = ">=2.31.0" },
-    { name = "streamlit", specifier = ">=1.30.0" },
-    { name = "yt-dlp", git = "https://github.com/yt-dlp/yt-dlp.git?rev=master" },
-]
-provides-extras = ["test"]
 
 [[package]]
 name = "yt-dlp"
