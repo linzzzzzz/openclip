@@ -18,7 +18,7 @@
 
 ### Agent Skills 演示
 
-<video src="demo/demo_skill.mov" controls width="600" height="340"></video>
+<video src="demo/demo_skill_compressed.mp4" controls width="600" height="340"></video>
 
 ## ✨ 特性
 

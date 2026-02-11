@@ -18,7 +18,7 @@ Give it a video URL or local file, and it handles the full pipeline: **Download 
 
 ### Agent Skills Demo
 
-<video src="demo/demo_skill.mov" controls width="600" height="340"></video>
+<video src="demo/demo_skill_compressed.mp4" controls width="600" height="340"></video>
 
 ## ✨ Features
 
