@@ -12,11 +12,11 @@
 
 ## 🎬 演示
 
-### 网页页面 演示
+### 网页页面
 
 ![OpenClip 演示](demo/demo.gif)
 
-### Agent Skills 演示
+### Agent Skills
 
 <video src="https://github.com/user-attachments/assets/1ddf8318-f6ad-418c-9c4c-bbac0dedc668" controls width="600" height="450"></video>
 
