@@ -1,6 +1,6 @@
 ---
 name: "video_highlights_processor"
-description: "Processes videos to identify engaging moments, generate transcripts, and create highlight clips with artistic titles. Use when user needs to: extract highlights from long videos or livestreams, clip or cut best moments from videos, process Bilibili/YouTube URLs or local video files, generate transcripts via Whisper, analyze content for engaging moments, create short-form clips with styled titles and cover images, or find and export memorable scenes from recordings."
+description: "Processes videos to identify engaging moments, generate transcripts, and create highlight clips with artistic titles and custom cover images. Use when user needs to: extract highlights from long videos or livestreams, clip or cut best moments from videos, process Bilibili/YouTube URLs or local video files, generate transcripts via Whisper, analyze content for engaging moments, create short-form clips with styled titles and covers, adjust cover text position, or find and export memorable scenes from recordings."
 ---
 
 # Video Highlights Processor Skill
@@ -33,13 +33,13 @@ For local files with existing subtitles, place the `.srt` file in the same direc
 |---|---|---|
 | `-o`, `--output <dir>` | `processed_videos` | Output directory |
 | `--max-duration <minutes>` | `20.0` | Max duration before auto-splitting |
-| `--max-clips <n>` | `5` | Maximum number of highlight clips to generate |
-| `--browser <browser>` | `firefox` | Browser for cookie extraction: `chrome`, `firefox`, `edge`, `safari` |
+| `--max-clips <n>` | `5` | Maximum number of highlight clips |
+| `--browser <browser>` | `firefox` | Browser for cookies: `chrome`, `firefox`, `edge`, `safari` |
 | `--title-style <style>` | `fire_flame` | Title style: `gradient_3d`, `neon_glow`, `metallic_gold`, `rainbow_3d`, `crystal_ice`, `fire_flame`, `metallic_silver`, `glowing_plasma`, `stone_carved`, `glass_transparent` |
+| `--cover-text-location <loc>` | `center` | Cover text position: `top`, `upper_middle`, `bottom`, `center` |
 | `--language <lang>` | `zh` | Output language: `zh` (Chinese), `en` (English) |
 | `--llm-provider <provider>` | `qwen` | LLM provider: `qwen`, `openrouter` |
-| `--cover-text-location <location>` | `center` | Text position on cover images: `top`, `upper_middle`, `bottom`, `center` |
-| `-f`, `--filename <template>` | — | Custom filename template |
+| `-f`, `--filename <template>` | — | yt-dlp template: `%(title)s`, `%(uploader)s`, `%(id)s`, etc. |
 
 ### Flags
 
@@ -51,7 +51,7 @@ For local files with existing subtitles, place the `.srt` file in the same direc
 | `--use-background` | Include background info (streamer names/nicknames) in analysis prompts |
 | `--skip-clips` | Skip clip generation |
 | `--skip-titles` | Skip adding artistic titles to clips |
-| `--no-cover` | Disable cover image generation |
+| `--skip-cover` | Skip cover image generation |
 | `-v`, `--verbose` | Enable verbose logging |
 | `--debug` | Export full prompts sent to LLM (saved to `debug_prompts/`) |
 
