@@ -29,9 +29,8 @@
 
 ## 📋 前置要求
 
-### 必需
+### 手动安装
 
-- **Python 3.11+**
 - **uv**（Python 包管理器）- [安装指南](https://docs.astral.sh/uv/getting-started/installation/)
 - **FFmpeg** - 用于视频处理
   - macOS: `brew install ffmpeg`
@@ -41,6 +40,15 @@
 - **LLM API Key**（选择其一）
   - **Qwen API Key** - 从[阿里云](https://dashscope.aliyun.com/)获取密钥
   - **OpenRouter API Key** - 从[OpenRouter](https://openrouter.ai/)获取密钥
+
+### 由 uv 自动管理
+
+运行 `uv sync` 时会自动安装以下依赖：
+
+- **Python 3.11+** - 如果系统未安装，uv 会自动下载
+- **yt-dlp** - 用于从 Bilibili、YouTube 等平台下载视频
+- **Whisper** - 用于语音转文字
+- 其他 Python 依赖（moviepy、streamlit 等）
 
 ## 🚀 快速开始
 

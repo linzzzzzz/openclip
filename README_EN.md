@@ -29,9 +29,8 @@ Give it a video URL or local file, and it handles the full pipeline: **Download 
 
 ## 📋 Prerequisites
 
-### Required
+### Manual Installation
 
-- **Python 3.11+**
 - **uv** (Python package manager) - [Installation guide](https://docs.astral.sh/uv/getting-started/installation/)
 - **FFmpeg** - For video processing
   - macOS: `brew install ffmpeg`
@@ -41,6 +40,15 @@ Give it a video URL or local file, and it handles the full pipeline: **Download 
 - **LLM API Key** (choose one)
   - **Qwen API Key** - Get your key from [Alibaba Cloud](https://dashscope.aliyun.com/)
   - **OpenRouter API Key** - Get your key from [OpenRouter](https://openrouter.ai/)
+
+### Managed by uv
+
+The following are installed automatically when you run `uv sync`:
+
+- **Python 3.11+** - Downloaded by uv if not already available
+- **yt-dlp** - For downloading videos from Bilibili, YouTube, etc.
+- **Whisper** - For speech-to-text transcription
+- Other Python dependencies (moviepy, streamlit, etc.)
 
 ## 🚀 Quick Start
 
