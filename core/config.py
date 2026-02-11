@@ -47,6 +47,11 @@ MAX_DURATION_MINUTES: float = 20.0
 # Options: tiny, base, small, medium, large, turbo
 WHISPER_MODEL: str = "base"
 
+# Title style for artistic text overlay
+# Options: gradient_3d, neon_glow, metallic_gold, rainbow_3d, crystal_ice,
+#          fire_flame, metallic_silver, glowing_plasma, stone_carved, glass_transparent
+DEFAULT_TITLE_STYLE: str = "fire_flame"
+
 # Maximum number of highlight clips to generate
 MAX_CLIPS: int = 5
 

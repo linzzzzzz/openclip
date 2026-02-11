@@ -17,6 +17,8 @@ uv run python video_orchestrator.py [options] <source>
 
 Where `<source>` is a video URL (Bilibili/YouTube) or local file path (MP4, WebM, AVI, MOV, MKV).
 
+For local files with existing subtitles, place the `.srt` file in the same directory with the same filename (e.g. `video.mp4` → `video.srt`).
+
 ## CLI Reference
 
 ### Required
@@ -30,12 +32,13 @@ Where `<source>` is a video URL (Bilibili/YouTube) or local file path (MP4, WebM
 | Flag | Default | Description |
 |---|---|---|
 | `-o`, `--output <dir>` | `processed_videos` | Output directory |
-| `--whisper-model <model>` | `base` | Whisper model: `tiny`, `base`, `small`, `medium`, `large`, `turbo` |
 | `--max-duration <minutes>` | `20.0` | Max duration before auto-splitting |
+| `--max-clips <n>` | `5` | Maximum number of highlight clips to generate |
 | `--browser <browser>` | `firefox` | Browser for cookie extraction: `chrome`, `firefox`, `edge`, `safari` |
-| `--artistic-style <style>` | `fire_flame` | Title style: `gradient_3d`, `neon_glow`, `metallic_gold`, `rainbow_3d`, `crystal_ice`, `fire_flame`, `metallic_silver`, `glowing_plasma`, `stone_carved`, `glass_transparent` |
+| `--title-style <style>` | `fire_flame` | Title style: `gradient_3d`, `neon_glow`, `metallic_gold`, `rainbow_3d`, `crystal_ice`, `fire_flame`, `metallic_silver`, `glowing_plasma`, `stone_carved`, `glass_transparent` |
 | `--language <lang>` | `zh` | Output language: `zh` (Chinese), `en` (English) |
 | `--llm-provider <provider>` | `qwen` | LLM provider: `qwen`, `openrouter` |
+| `--cover-text-location <location>` | `center` | Text position on cover images: `top`, `upper_middle`, `bottom`, `center` |
 | `-f`, `--filename <template>` | — | Custom filename template |
 
 ### Flags
@@ -46,9 +49,9 @@ Where `<source>` is a video URL (Bilibili/YouTube) or local file path (MP4, WebM
 | `--skip-download` | Use existing downloaded video |
 | `--skip-analysis` | Skip analysis, use existing analysis file for clip generation |
 | `--use-background` | Include background info (streamer names/nicknames) in analysis prompts |
-| `--no-clips` | Disable clip generation |
-| `--no-titles` | Disable adding artistic titles to clips |
-| `--no-cover` | Disable cover image generation |
+| `--skip-clips` | Skip clip generation |
+| `--skip-titles` | Skip adding artistic titles to clips |
+| `--skip-cover` | Skip cover image generation |
 | `-v`, `--verbose` | Enable verbose logging |
 | `--debug` | Export full prompts sent to LLM (saved to `debug_prompts/`) |
 
@@ -74,22 +77,19 @@ The orchestrator runs this pipeline automatically:
 3. **Transcribe** using platform subtitles or Whisper AI (fallback or `--force-whisper`)
 4. **Analyze** transcript for engaging moments via LLM
 5. **Generate clips** from identified moments
-6. **Add artistic titles** to clips using `--artistic-style`
+6. **Add artistic titles** to clips using `--title-style`
 7. **Generate cover images** for each highlight
 
-Use `--no-clips`, `--no-titles`, `--no-cover` to skip specific steps. Use `--skip-download` and `--skip-analysis` to resume from intermediate results.
+Use `--skip-clips`, `--skip-titles`, `--skip-cover` to skip specific steps. Use `--skip-download` and `--skip-analysis` to resume from intermediate results.
 
 ## Output Structure
 
 ```
-processed_videos/
-├── downloads/            # Downloaded videos
-├── splits/               # Split video segments
-├── clips/                # Highlight clips
-│   └── [video_title]/
-├── clips_with_titles/    # Clips with artistic titles
-│   └── [video_title]/
-└── transcripts/          # Generated transcripts
+processed_videos/{video_name}/
+├── downloads/            # Original video, subtitles, and metadata
+├── splits/               # Split parts and AI analysis results
+├── clips/                # Generated highlight clips and summary
+└── clips_with_titles/    # Final clips with artistic titles and cover images
 ```
 
 ## Option Selection Guide

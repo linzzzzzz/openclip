@@ -46,7 +46,8 @@ class CoverImageGenerator:
                       title_text: str,
                       output_path: str,
                       frame_time: float = 5.0,
-                      generate_vertical: bool = True) -> bool:
+                      generate_vertical: bool = True,
+                      text_location: str = "center") -> bool:
         """
         Generate cover image from video frame with styled text overlay
         
@@ -56,10 +57,13 @@ class CoverImageGenerator:
             output_path: Path to save cover image
             frame_time: Time in seconds to extract frame (default: 5.0)
             generate_vertical: Also generate vertical 3:4 cover (default: True)
+            text_location: Text position on cover (default: "center"). Options: "top", "upper_middle", "bottom", "center"
             
         Returns:
             True if successful, False otherwise
         """
+
+
         try:
             logger.info(f"🖼️  Generating cover image from: {Path(video_path).name}")
             
@@ -76,14 +80,14 @@ class CoverImageGenerator:
             
             # Generate horizontal cover (original aspect ratio) with 70% width
             img_horizontal = img.copy()  # Create a copy for horizontal cover
-            img_with_text = self._add_text_overlay(img_horizontal, title_text, max_width_ratio=0.7)
+            img_with_text = self._add_text_overlay(img_horizontal, title_text, max_width_ratio=0.7, text_location=text_location)
             img_with_text.save(output_path, quality=95)
             logger.info(f"✓ Cover saved: {Path(output_path).name}")
             
             # Generate vertical 3:4 cover if requested (use original clean img) with 80% width
             if generate_vertical:
                 vertical_output_path = output_path.replace('.jpg', '_vertical.jpg')
-                img_vertical = self._create_vertical_cover(img, title_text)
+                img_vertical = self._create_vertical_cover(img, title_text, text_location=text_location)
                 img_vertical.save(vertical_output_path, quality=95)
                 logger.info(f"✓ Vertical cover saved: {Path(vertical_output_path).name}")
             
@@ -93,7 +97,7 @@ class CoverImageGenerator:
             logger.error(f"Error generating cover: {e}")
             return False
     
-    def _create_vertical_cover(self, img: Image.Image, title_text: str) -> Image.Image:
+    def _create_vertical_cover(self, img: Image.Image, title_text: str, text_location: str = "center") -> Image.Image:
         """Create vertical 3:4 aspect ratio cover"""
         original_width, original_height = img.size
         
@@ -112,18 +116,21 @@ class CoverImageGenerator:
             img_cropped = img
         
         # Add text overlay with 80% width for vertical covers
-        img_with_text = self._add_text_overlay(img_cropped, title_text, max_width_ratio=0.8)
+        img_with_text = self._add_text_overlay(img_cropped, title_text, max_width_ratio=0.8, text_location=text_location)
         
         return img_with_text
     
-    def _add_text_overlay(self, img: Image.Image, title_text: str, max_width_ratio: float = 0.6) -> Image.Image:
+    def _add_text_overlay(self, img: Image.Image, title_text: str, max_width_ratio: float = 0.6, text_location: str = "center") -> Image.Image:
         """Add styled text overlay to image (single title only with text wrapping)
         
         Args:
             img: Image to add text to
             title_text: Text to overlay
             max_width_ratio: Ratio of image width to use for text (default: 0.6)
+            text_location: Text position on cover (default: "center"). Options: "top", "upper_middle", "bottom", "center"
         """
+
+
         draw = ImageDraw.Draw(img)
         width, height = img.size
         
@@ -141,8 +148,15 @@ class CoverImageGenerator:
         line_height = title_font.size + 10
         total_text_height = len(wrapped_lines) * line_height
         
-        # Position text in upper portion (centered vertically for the text block)
-        start_y = int(height * 0.5)
+        # Position text based on text_location parameter
+        if text_location == "top":
+            start_y = int(height * 0.2)  # 20% from top
+        elif text_location == "upper_middle":
+            start_y = int(height * 0.4)  # 40% from top
+        elif text_location == "bottom":
+            start_y = int(height * 0.7)  # 70% from top
+        else:  # center
+            start_y = int(height * 0.5)  # 50% from top
         
         # Draw each line
         for i, line in enumerate(wrapped_lines):

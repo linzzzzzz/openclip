@@ -10,9 +10,15 @@ Give it a video URL or local file, and it handles the full pipeline: **Download 
 
 > 💡 **How is it different from AutoClip?** See the [comparison section](#-comparison-with-autoclip) to learn about OpenClip's lightweight design philosophy.
 
-## 🎬 Demo
+## 🎬 Demos
+
+### Web UI Demo
 
 ![OpenClip Demo](demo/demo.gif)
+
+### Agent Skills Demo
+
+<video src="demo/demo_skill.mov" controls width="600" height="340"></video>
 
 ## ✨ Features
 
@@ -121,6 +127,8 @@ uv run python video_orchestrator.py "https://www.youtube.com/watch?v=dQw4w9WgXcQ
 uv run python video_orchestrator.py "/path/to/video.mp4"
 ```
 
+> To use existing subtitles, place the `.srt` file in the same directory with the same filename (e.g. `video.mp4` → `video.srt`).
+
 ## 📖 CLI Arguments
 
 | Argument | Description | Default |
@@ -129,7 +137,7 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 | `-o`, `--output-dir` | Custom output directory | `processed_videos` |
 | `--llm-provider` | LLM provider (`qwen` or `openrouter`) | `qwen` |
 | `--language` | Output language (`zh` or `en`) | `zh` |
-| `--artistic-style` | Banner Title artistic style (see list below) | `fire_flame` |
+| `--title-style` | Title artistic style (see list below) | `fire_flame` |
 | `--max-duration` | Split duration in minutes | `20` |
 | `--browser` | Browser for cookies (`chrome`/`firefox`/`edge`/`safari`) | `firefox` |
 | `--force-whisper` | Force Whisper transcription (ignore platform subtitles) | Off |
@@ -138,10 +146,10 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 | `--skip-analysis` | Skip analysis, use existing results | Off |
 | `--no-clips` | Don't generate clips | Off |
 | `--no-titles` | Don't add artistic titles | Off |
-| `--no-cover` | Don't generate cover images | Off |
+| `--skip-cover` | Don't generate cover images | Off |
 
 <details>
-<summary>🎨 Banner Title Artistic Styles</summary>
+<summary>🎨 Title Artistic Styles</summary>
 
 | Style | Effect |
 |-------|--------|
@@ -160,22 +168,22 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 
 ## 🔍 Command Line Examples
 
-**Process a Bilibili video with background info and neon glow style banner title:**
+**Process a Bilibili video with background info and neon glow style title:**
 ```bash
 uv run python video_orchestrator.py \
-  --artistic-style neon_glow \
+  --title-style neon_glow \
   --use-background \
   "https://www.bilibili.com/video/BV1wT6GBBEPp"
 ```
 
 **Analysis only, no clip generation:**
 ```bash
-uv run python video_orchestrator.py --no-clips --no-titles "VIDEO_URL"
+uv run python video_orchestrator.py --skip-clips --skip-titles "VIDEO_URL"
 ```
 
 **Skip download, reprocess existing video:**
 ```bash
-uv run python video_orchestrator.py --skip-download --artistic-style crystal_ice "VIDEO_URL"
+uv run python video_orchestrator.py --skip-download --title-style crystal_ice "VIDEO_URL"
 ```
 
 ## 📁 Output Structure
@@ -268,7 +276,7 @@ Output Ready!
 **Cause**: FFmpeg not installed or not in PATH. Run `ffmpeg -version` to check, install if missing (macOS: `brew install ffmpeg`).
 
 ### Memory issues
-**Cause**: Very long video. Try `--max-duration 10` for shorter splits, or `--no-titles` to process in stages.
+**Cause**: Very long video. Try `--max-duration 10` for shorter splits, or `--skip-titles` to process in stages.
 
 ### Chinese text not displaying
 **Cause**: Missing Chinese fonts. macOS auto-detects (STHeiti, PingFang), Windows needs SimSun or Microsoft YaHei, Linux needs `fonts-wqy-zenhei`.
@@ -287,7 +295,7 @@ OpenClip is inspired by [AutoClip](https://github.com/zhouxiaoka/autoclip) but t
 | **Interface** | Web UI + Agent Skills + Command-line | Web UI |
 | **Deployment** | `uv sync` and go | Docker containerized |
 
-**OpenClip Features:** Lightweight (5K lines), fast startup, customizable prompts, 10 artistic title styles, easy to maintain and extend
+**OpenClip Features:** Lightweight (5K lines), fast startup, customizable prompts, 10 title styles, easy to maintain and extend
 
 Thanks to [AutoClip](https://github.com/zhouxiaoka/autoclip) for their contributions to video automation.
 

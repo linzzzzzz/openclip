@@ -32,7 +32,7 @@ from core.video_utils import (
     ResultsFormatter,
     find_existing_download
 )
-from core.config import DEFAULT_LLM_PROVIDER, API_KEY_ENV_VARS, MAX_DURATION_MINUTES, WHISPER_MODEL, MAX_CLIPS, SKIP_DOWNLOAD, SKIP_TRANSCRIPT
+from core.config import DEFAULT_LLM_PROVIDER, DEFAULT_TITLE_STYLE, API_KEY_ENV_VARS, MAX_DURATION_MINUTES, WHISPER_MODEL, MAX_CLIPS, SKIP_DOWNLOAD, SKIP_TRANSCRIPT
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -54,13 +54,14 @@ class VideoOrchestrator:
                 skip_analysis: bool = False,
                 generate_clips: bool = True,
                 add_titles: bool = True,
-                artistic_style: str = "fire_flame",
+                title_style: str = DEFAULT_TITLE_STYLE,
                 use_background: bool = False,
                 generate_cover: bool = True,
                 language: str = "zh",
                 debug: bool = False,
                 custom_prompt_file: Optional[str] = None,
-                max_clips: int = MAX_CLIPS):
+                max_clips: int = MAX_CLIPS,
+                cover_text_location: str = "center"):
         """
         Initialize the video orchestrator
 
@@ -74,13 +75,16 @@ class VideoOrchestrator:
             skip_analysis: Skip engaging moments analysis (clips can still use existing analysis file)
             generate_clips: Whether to generate clips from engaging moments
             add_titles: Whether to add artistic titles to clips
-            artistic_style: Style for artistic titles (crystal_ice, gradient_3d, neon_glow, etc.)
+            title_style: Style for artistic titles (crystal_ice, gradient_3d, neon_glow, etc.)
             use_background: Whether to include background information in analysis prompts
             generate_cover: Whether to generate cover images
             language: Language for output ("zh" for Chinese, "en" for English)
             debug: Enable debug mode to export full prompts sent to LLM
             custom_prompt_file: Path to custom prompt file (optional)
+            cover_text_location: Text position on cover images (default: "center"). Options: "top", "upper_middle", "bottom", "center"
         """
+
+
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
         self.language = language
@@ -88,6 +92,7 @@ class VideoOrchestrator:
         self.llm_provider = llm_provider.lower()
         self.custom_prompt_file = custom_prompt_file
         self.use_background = use_background
+        self.cover_text_location = cover_text_location
 
         # Initialize processing components
         # Note: Downloader and splitter will be configured per-video later
@@ -125,7 +130,7 @@ class VideoOrchestrator:
         # These can work independently if analysis file already exists
         self.generate_clips_enabled = generate_clips
         self.add_titles_enabled = add_titles
-        self.artistic_style = artistic_style
+        self.title_style = title_style
         
         # Initialize clip generation and title adding components
         # These will be configured with video-specific directories later
@@ -143,7 +148,7 @@ class VideoOrchestrator:
         if self.add_titles_enabled:
             # Initialize with temporary dir, will be updated later
             self.title_adder = TitleAdder(output_dir=str(self.output_dir))
-            logger.info(f"🎨 Title adding: enabled (style: {artistic_style})")
+            logger.info(f"🎨 Title adding: enabled (style: {title_style})")
         else:
             self.title_adder = None
             logger.info("🎨 Title adding: disabled")
@@ -152,7 +157,7 @@ class VideoOrchestrator:
         self.generate_cover_enabled = generate_cover
         if self.generate_cover_enabled:
             self.cover_generator = CoverImageGenerator()
-            logger.info("🖼️  Cover generation: enabled")
+            logger.info(f"🖼️  Cover generation: enabled (text location: {cover_text_location})")
         else:
             self.cover_generator = None
             logger.info("🖼️  Cover generation: disabled")
@@ -320,27 +325,27 @@ class VideoOrchestrator:
                     result.engaging_moments_analysis = engaging_result
                     logger.info(f"   Found existing analysis: {engaging_result.get('aggregated_file')}")
             
+            # Create video-specific subfolders (needed by clips and cover generation)
+            video_clips_dir = video_root_dir / "clips"
+            video_clips_dir.mkdir(parents=True, exist_ok=True)
+
+            video_clips_with_titles_dir = video_root_dir / "clips_with_titles"
+            video_clips_with_titles_dir.mkdir(parents=True, exist_ok=True)
+
+            # Initialize video_titles_dir to video_clips_dir as default (for cover generation)
+            video_titles_dir = video_clips_dir
+
             # Step 5: Generate clips from engaging moments (if enabled and analysis available)
             if self.clip_generator and engaging_result and engaging_result.get('aggregated_file'):
                 logger.info("🎬 Step 5: Generating clips from engaging moments...")
                 if progress_callback:
                     progress_callback("Generating video clips...", 70)
-                
+
                 # Determine video directory
                 if result.was_split and result.video_parts:
                     video_dir = Path(result.video_parts[0]).parent
                 else:
                     video_dir = Path(result.video_path).parent
-                
-                # Create video-specific subfolders
-                video_clips_dir = video_root_dir / "clips"
-                video_clips_dir.mkdir(parents=True, exist_ok=True)
-                
-                video_clips_with_titles_dir = video_root_dir / "clips_with_titles"
-                video_clips_with_titles_dir.mkdir(parents=True, exist_ok=True)
-                
-                # Initialize video_titles_dir to video_clips_dir as default (for cover generation)
-                video_titles_dir = video_clips_dir
                 
                 # Update clip generator output dir
                 self.clip_generator.output_dir = video_clips_dir
@@ -363,7 +368,7 @@ class VideoOrchestrator:
                     title_result = self.title_adder.add_titles_to_clips(
                         clip_result['output_dir'],
                         engaging_result['aggregated_file'],
-                        self.artistic_style
+                        self.title_style
                     )
                     result.title_addition = title_result
             elif self.clip_generator and not engaging_result:
@@ -682,7 +687,8 @@ class VideoOrchestrator:
                     str(clip_path),
                     moment_title,
                     str(cover_path),
-                    frame_time=0.0  # Use first frame of the clip
+                    frame_time=0.0,  # Use first frame of the clip
+                    text_location=self.cover_text_location
                 )
                 
                 if success:
@@ -742,14 +748,14 @@ Examples:
   # With background information (streamer names/nicknames) for better analysis
   python video_orchestrator.py --use-background "https://www.bilibili.com/video/BV1ut6JBTEVK"
   
-  # With custom artistic style for titles
-  python video_orchestrator.py --artistic-style neon_glow "https://www.bilibili.com/video/BV1wT6GBBEPp"
+  # With custom title style
+  python video_orchestrator.py --title-style neon_glow "https://www.bilibili.com/video/BV1wT6GBBEPp"
   
   # Skip clip generation but add titles
-  python video_orchestrator.py --no-clips "https://www.bilibili.com/video/BV1234567890"
+  python video_orchestrator.py --skip-clips "https://www.bilibili.com/video/BV1234567890"
   
   # Analysis only, no clips or titles
-  python video_orchestrator.py --no-clips --no-titles "https://www.bilibili.com/video/BV1234567890"
+  python video_orchestrator.py --skip-clips --no-titles "https://www.bilibili.com/video/BV1234567890"
   
   # Skip analysis but generate clips from existing analysis file
   python video_orchestrator.py --skip-download --skip-analysis "https://www.bilibili.com/video/BV1wT6GBBEPp"
@@ -784,18 +790,18 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
                        help='Skip engaging moments analysis (can still generate clips from existing analysis file)')
     parser.add_argument('--use-background', action='store_true',
                        help='Include background information (streamer names, nicknames) in analysis prompts')
-    parser.add_argument('--no-clips', action='store_true',
-                       help='Disable clip generation from engaging moments')
-    parser.add_argument('--no-titles', action='store_true',
-                       help='Disable adding titles to clips')
-    parser.add_argument('--no-cover', action='store_true',
-                       help='Disable cover image generation')
+    parser.add_argument('--skip-clips', action='store_true',
+                       help='Skip clip generation from engaging moments')
+    parser.add_argument('--skip-titles', action='store_true',
+                       help='Skip adding titles to clips')
+    parser.add_argument('--skip-cover', action='store_true',
+                       help='Skip cover image generation')
     parser.add_argument('--max-clips', type=int, default=MAX_CLIPS,
                        help=f'Maximum number of highlight clips to generate (default: {MAX_CLIPS})')
-    parser.add_argument('--artistic-style', default='fire_flame',
+    parser.add_argument('--title-style', default=DEFAULT_TITLE_STYLE,
                        choices=['gradient_3d', 'neon_glow', 'metallic_gold', 'rainbow_3d', 'crystal_ice',
                                'fire_flame', 'metallic_silver', 'glowing_plasma', 'stone_carved', 'glass_transparent'],
-                       help='Artistic style for titles (default: fire_flame)')
+                       help=f'Visual style for title banner (default: {DEFAULT_TITLE_STYLE})')
     parser.add_argument('--browser', default='firefox',
                        choices=['chrome', 'firefox', 'edge', 'safari'],
                        help='Browser for cookie extraction (default: firefox)')
@@ -805,6 +811,9 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
     parser.add_argument('--llm-provider', default='qwen',
                        choices=['qwen', 'openrouter'],
                        help='LLM provider to use for engaging moments analysis (default: qwen)')
+    parser.add_argument('--cover-text-location', default='center',
+                       choices=['top', 'upper_middle', 'bottom', 'center'],
+                       help='Text position on cover images (default: center)')
     parser.add_argument('-f', '--filename',
                        help='Custom filename template')
     parser.add_argument('-v', '--verbose', action='store_true',
@@ -828,14 +837,15 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
         api_key=api_key,
         llm_provider=args.llm_provider,
         skip_analysis=args.skip_analysis,
-        generate_clips=not args.no_clips,
-        add_titles=not args.no_titles,
-        artistic_style=args.artistic_style,
+        generate_clips=not args.skip_clips,
+        add_titles=not args.skip_titles,
+        title_style=args.title_style,
         use_background=args.use_background,
-        generate_cover=not args.no_cover,
+        generate_cover=not args.skip_cover,
         language=args.language,
         debug=args.debug,
-        max_clips=args.max_clips
+        max_clips=args.max_clips,
+        cover_text_location=args.cover_text_location
     )
     
     def progress_callback(status: str, progress: float):

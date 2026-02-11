@@ -123,7 +123,7 @@ class ResultsFormatter:
             if title_add.get('success'):
                 print(f"\n🎨 TITLE ADDITION:")
                 print(f"   Titles added: {title_add.get('successful_clips', 0)}/{title_add.get('total_clips', 0)}")
-                print(f"   Artistic style: {title_add.get('artistic_style', 'N/A')}")
+                print(f"   Title style: {title_add.get('title_style', 'N/A')}")
                 print(f"   Output directory: {title_add.get('output_dir', 'N/A')}")
                 if title_add.get('processed_clips'):
                     print(f"   Processed clips:")

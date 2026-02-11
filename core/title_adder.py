@@ -438,14 +438,14 @@ class TitleAdder:
     def add_titles_to_clips(self,
                            clips_dir: str,
                            analysis_file: str,
-                           artistic_style: str = 'crystal_ice') -> Dict[str, Any]:
+                           title_style: str = 'crystal_ice') -> Dict[str, Any]:
         """
         Add titles to generated clips
         
         Args:
             clips_dir: Directory containing clips without titles
             analysis_file: Path to top_engaging_moments.json
-            artistic_style: Style for artistic text rendering
+            title_style: Style for artistic text rendering
             
         Returns:
             Dictionary with processing results
@@ -461,7 +461,7 @@ class TitleAdder:
                 data = json.load(f)
             
             logger.info("🎨 Adding artistic titles to clips")
-            logger.info(f"🎨 Style: {artistic_style}")
+            logger.info(f"🎨 Style: {title_style}")
             logger.info(f"📁 Output: {self.output_dir}")
             
             successful_count = 0
@@ -482,7 +482,7 @@ class TitleAdder:
                     continue
                 
                 # Create output filename
-                output_filename = f"artistic_{artistic_style}_rank_{rank:02d}_{safe_title}.mp4"
+                output_filename = f"artistic_{title_style}_rank_{rank:02d}_{safe_title}.mp4"
                 output_path = self.output_dir / output_filename
                 
                 logger.info(f"[{rank}] Processing: {title}")
@@ -492,7 +492,7 @@ class TitleAdder:
                     str(input_path),
                     title,
                     str(output_path),
-                    artistic_style
+                    title_style
                 )
                 
                 if success:
@@ -508,7 +508,7 @@ class TitleAdder:
             
             # Create README
             if processed_clips:
-                self._create_readme(processed_clips, data, artistic_style)
+                self._create_readme(processed_clips, data, title_style)
             
             result = {
                 'success': successful_count > 0,
@@ -516,7 +516,7 @@ class TitleAdder:
                 'successful_clips': successful_count,
                 'processed_clips': processed_clips,
                 'output_dir': str(self.output_dir),
-                'artistic_style': artistic_style
+                'title_style': title_style
             }
             
             logger.info(f"🎯 Added titles to {successful_count}/{len(data['top_engaging_moments'])} clips")
@@ -540,7 +540,7 @@ class TitleAdder:
         return title.strip('_')
     
     def _add_artistic_title(self, input_video: str, title: str,
-                           output_video: str, artistic_style: str) -> bool:
+                           output_video: str, title_style: str) -> bool:
         """Add artistic title overlay to video"""
         try:
             video = VideoFileClip(input_video)
@@ -566,7 +566,7 @@ class TitleAdder:
             artistic_img = self.renderer.create_artistic_text(
                 title,
                 font_size=40,
-                style=artistic_style
+                style=title_style
             )
             
             # Position title
@@ -601,17 +601,17 @@ class TitleAdder:
             logger.error(f"Error adding title: {e}")
             return False
     
-    def _create_readme(self, processed_clips: List[Dict], data: Dict, artistic_style: str):
+    def _create_readme(self, processed_clips: List[Dict], data: Dict, title_style: str):
         """Create README for titled clips"""
         readme_path = self.output_dir / "README.md"
         
         with open(readme_path, 'w', encoding='utf-8') as f:
             f.write(f"# 🎬 Engaging Clips with Artistic Titles\n\n")
-            f.write(f"**Artistic Style**: {artistic_style}\n")
+            f.write(f"**Artistic Style**: {title_style}\n")
             f.write(f"**Total Clips**: {len(processed_clips)}\n\n")
             
             f.write("## 🎨 Artistic Style\n\n")
-            f.write(f"All clips use the **{artistic_style}** artistic text effect.\n\n")
+            f.write(f"All clips use the **{title_style}** artistic text effect.\n\n")
             
             f.write("## 📝 Clips List\n\n")
             f.write("| Rank | Title | Filename |\n")

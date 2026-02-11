@@ -12,7 +12,13 @@
 
 ## 🎬 演示
 
+### 网页页面 演示
+
 ![OpenClip 演示](demo/demo.gif)
+
+### Agent Skills 演示
+
+<video src="demo/demo_skill.mov" controls width="600" height="340"></video>
 
 ## ✨ 特性
 
@@ -121,6 +127,8 @@ uv run python video_orchestrator.py "https://www.youtube.com/watch?v=dQw4w9WgXcQ
 uv run python video_orchestrator.py "/path/to/video.mp4"
 ```
 
+> 如需使用已有字幕，请将 `.srt` 文件放在同目录下，文件名保持一致（如 `video.mp4` → `video.srt`）。
+
 ## 📖 命令行参数
 
 | 参数 | 说明 | 默认值 |
@@ -129,16 +137,16 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 | `-o`, `--output-dir` | 自定义输出目录 | `processed_videos` |
 | `--llm-provider` | LLM 提供商（`qwen` 或 `openrouter`） | `qwen` |
 | `--language` | 输出语言（`zh` 或 `en`） | `zh` |
-| `--artistic-style` | Banner 标题艺术风格（见下方列表） | `fire_flame` |
+| `--title-style` | Banner 标题艺术风格（见下方列表） | `fire_flame` |
 | `--max-duration` | 视频分割时长，单位分钟 | `20` |
 | `--browser` | 用于 cookie 的浏览器（`chrome`/`firefox`/`edge`/`safari`） | `firefox` |
 | `--force-whisper` | 强制使用 Whisper 转录（忽略平台字幕） | 关 |
 | `--use-background` | 使用背景信息辅助分析 | 关 |
 | `--skip-download` | 跳过下载，使用已下载的视频 | 关 |
 | `--skip-analysis` | 跳过分析，使用已有分析结果 | 关 |
-| `--no-clips` | 不生成剪辑 | 关 |
-| `--no-titles` | 不添加艺术字幕 | 关 |
-| `--no-cover` | 不生成封面图片 | 关 |
+| `--skip-clips` | 不生成剪辑 | 关 |
+| `--skip-titles` | 不添加艺术标题 | 关 |
+| `--skip-cover` | 不生成封面图片 | 关 |
 
 <details>
 <summary>🎨 Banner 标题艺术风格</summary>
@@ -163,19 +171,19 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 **处理 Bilibili 视频，加载背景信息， 并使用霓虹风格处理Banner标题：**
 ```bash
 uv run python video_orchestrator.py \
-  --artistic-style neon_glow \
+  --title-style neon_glow \
   --use-background \
   "https://www.bilibili.com/video/BV1wT6GBBEPp"
 ```
 
 **仅分析，不生成剪辑：**
 ```bash
-uv run python video_orchestrator.py --no-clips --no-titles "VIDEO_URL"
+uv run python video_orchestrator.py --skip-clips --no-titles "VIDEO_URL"
 ```
 
 **跳过下载，重新处理已有视频：**
 ```bash
-uv run python video_orchestrator.py --skip-download --artistic-style crystal_ice "VIDEO_URL"
+uv run python video_orchestrator.py --skip-download --title-style crystal_ice "VIDEO_URL"
 ```
 
 ## 📁 输出结构
@@ -187,7 +195,7 @@ processed_videos/{video_name}/
 ├── downloads/            # 原始视频、字幕和元数据
 ├── splits/               # 分割片段和 AI 分析结果
 ├── clips/                # 生成的精彩剪辑和摘要
-└── clips_with_titles/    # 带艺术字幕的最终剪辑和封面图片
+└── clips_with_titles/    # 带艺术标题的最终剪辑和封面图片
 ```
 
 ## 🎨 自定义
@@ -244,7 +252,7 @@ AI 分析（每个片段）
     ↓
 生成剪辑
     ↓
-添加艺术字幕
+添加艺术标题
     ↓
 生成封面图片
     ↓
@@ -268,7 +276,7 @@ AI 分析（每个片段）
 **原因**：FFmpeg 未安装或不在 PATH 中。运行 `ffmpeg -version` 检查，缺失则安装（macOS: `brew install ffmpeg`）。
 
 ### 内存问题
-**原因**：视频过长。尝试 `--max-duration 10` 缩短分割时长，或 `--no-titles` 分阶段处理。
+**原因**：视频过长。尝试 `--max-duration 10` 缩短分割时长，或 `--skip-titles` 分阶段处理。
 
 ### 中文文本不显示
 **原因**：缺少中文字体。macOS 自动检测（STHeiti、PingFang），Windows 需安装宋体或微软雅黑，Linux 安装 `fonts-wqy-zenhei`。
@@ -295,7 +303,7 @@ OpenClip 受 [AutoClip](https://github.com/zhouxiaoka/autoclip) 启发，但采�
 
 欢迎贡献！改进方向：
 
-- 额外的艺术字幕风格
+- 额外的艺术标题风格
 - 支持更多视频平台
 - 改进的 AI 分析提示词
 - 性能优化

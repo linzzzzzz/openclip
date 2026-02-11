@@ -16,7 +16,7 @@ from typing import Optional, Dict, Any
 
 # Import the video orchestrator
 from video_orchestrator import VideoOrchestrator
-from core.config import API_KEY_ENV_VARS, MAX_DURATION_MINUTES, WHISPER_MODEL, MAX_CLIPS
+from core.config import API_KEY_ENV_VARS, DEFAULT_LLM_PROVIDER, DEFAULT_TITLE_STYLE, MAX_DURATION_MINUTES, WHISPER_MODEL, MAX_CLIPS
 
 # Set page config
 st.set_page_config(
@@ -41,7 +41,7 @@ TRANSLATIONS = {
         'local_file_path': 'Local Video File Path',
         'llm_provider': 'LLM Provider',
         'api_key': 'API Key',
-        'artistic_style': 'Artistic Style',
+        'title_style': 'Title Style',
         'language': 'Output Language',
         'output_dir': 'Output Directory',
         'use_background': 'Use Background Info',
@@ -91,7 +91,7 @@ TRANSLATIONS = {
         'select_llm_provider': 'Select which AI provider to use for analysis',
         'enter_api_key': 'Enter API key or leave blank if set as environment variable',
         'api_key_help': 'You can also set the API_KEY environment variable',
-        'select_artistic_style': 'Select the visual style for titles and covers',
+        'select_title_style': 'Select the visual style for titles and covers',
         'select_language': 'Language for analysis and output',
         'enter_output_dir': 'Directory to save processed videos',
         'force_whisper_help': 'Force transcript generation via Whisper (ignore platform subtitles)',
@@ -111,7 +111,7 @@ TRANSLATIONS = {
         'local_file_path': '本地视频文件路径',
         'llm_provider': 'LLM 提供商',
         'api_key': 'API 密钥',
-        'artistic_style': '艺术风格',
+        'title_style': '标题风格',
         'language': '输出语言',
         'output_dir': '输出目录',
         'use_background': '使用背景信息提示词',
@@ -161,7 +161,7 @@ TRANSLATIONS = {
         'select_llm_provider': '选择用于分析的 AI 提供商',
         'enter_api_key': '输入 API 密钥或留空（如果已设置为环境变量）',
         'api_key_help': '您也可以设置 API_KEY 环境变量',
-        'select_artistic_style': '选择标题和封面的视觉风格',
+        'select_title_style': '选择标题和封面的视觉风格',
         'select_language': '分析和输出的语言',
         'enter_output_dir': '保存处理后视频的目录',
         'force_whisper_help': '强制通过 Whisper 生成字幕（忽略平台字幕）',
@@ -188,9 +188,9 @@ DEFAULT_DATA = {
     # Other form elements
     'input_type': "Video URL",
     'video_source': "",
-    'llm_provider': "qwen",
+    'llm_provider': DEFAULT_LLM_PROVIDER,
     'api_key': "",
-    'artistic_style': "crystal_ice",
+    'title_style': DEFAULT_TITLE_STYLE,
     'language': "zh",
     'output_dir': "processed_videos",
     'custom_prompt_file': None,
@@ -481,7 +481,7 @@ with st.sidebar:
     )
     data['api_key'] = api_key
     
-    artistic_style = data['artistic_style']
+    title_style = data['title_style']
 
     # Additional options
     languages = ["zh", "en"]
@@ -711,7 +711,7 @@ if process_clicked and not is_processing:
                 llm_provider=llm_provider,
                 generate_clips=generate_clips,
                 add_titles=add_titles,
-                artistic_style=artistic_style,
+                title_style=title_style,
                 use_background=use_background,
                 generate_cover=generate_cover,
                 language=language,
@@ -734,7 +734,7 @@ if process_clicked and not is_processing:
                         skip_analysis=False,
                         generate_clips=p['generate_clips'],
                         add_titles=p['add_titles'],
-                        artistic_style=p['artistic_style'],
+                        title_style=p['title_style'],
                         use_background=p['use_background'],
                         generate_cover=p['generate_cover'],
                         language=p['language'],
