@@ -4,7 +4,7 @@ Cover Image Generator - Create video cover images with styled text overlays
 """
 import logging
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Dict
 import os
 
 from moviepy import VideoFileClip
@@ -12,6 +12,21 @@ from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 
 logger = logging.getLogger(__name__)
+
+
+COVER_COLORS: Dict[str, Tuple[int, int, int]] = {
+    "yellow": (255, 220, 0),
+    "red": (255, 50, 50),
+    "white": (255, 255, 255),
+    "cyan": (0, 255, 255),
+    "green": (50, 255, 50),
+    "orange": (255, 165, 0),
+    "pink": (255, 105, 180),
+    "purple": (147, 112, 219),
+    "gold": (255, 215, 0),
+    "silver": (192, 192, 192),
+    "black": (0, 0, 0),
+}
 
 
 class CoverImageGenerator:
@@ -47,7 +62,9 @@ class CoverImageGenerator:
                       output_path: str,
                       frame_time: float = 5.0,
                       generate_vertical: bool = True,
-                      text_location: str = "center") -> bool:
+                      text_location: str = "center",
+                      fill_color: Tuple[int, int, int] = (255, 220, 0),
+                      outline_color: Tuple[int, int, int] = (0, 0, 0)) -> bool:
         """
         Generate cover image from video frame with styled text overlay
         
@@ -58,6 +75,8 @@ class CoverImageGenerator:
             frame_time: Time in seconds to extract frame (default: 5.0)
             generate_vertical: Also generate vertical 3:4 cover (default: True)
             text_location: Text position on cover (default: "center"). Options: "top", "upper_middle", "bottom", "center"
+            fill_color: RGB tuple for text fill color (default: yellow 255,220,0)
+            outline_color: RGB tuple for text outline color (default: black 0,0,0)
             
         Returns:
             True if successful, False otherwise
@@ -80,14 +99,14 @@ class CoverImageGenerator:
             
             # Generate horizontal cover (original aspect ratio) with 70% width
             img_horizontal = img.copy()  # Create a copy for horizontal cover
-            img_with_text = self._add_text_overlay(img_horizontal, title_text, max_width_ratio=0.7, text_location=text_location)
+            img_with_text = self._add_text_overlay(img_horizontal, title_text, max_width_ratio=0.7, text_location=text_location, fill_color=fill_color, outline_color=outline_color)
             img_with_text.save(output_path, quality=95)
             logger.info(f"✓ Cover saved: {Path(output_path).name}")
             
             # Generate vertical 3:4 cover if requested (use original clean img) with 80% width
             if generate_vertical:
                 vertical_output_path = output_path.replace('.jpg', '_vertical.jpg')
-                img_vertical = self._create_vertical_cover(img, title_text, text_location=text_location)
+                img_vertical = self._create_vertical_cover(img, title_text, text_location=text_location, fill_color=fill_color, outline_color=outline_color)
                 img_vertical.save(vertical_output_path, quality=95)
                 logger.info(f"✓ Vertical cover saved: {Path(vertical_output_path).name}")
             
@@ -97,7 +116,9 @@ class CoverImageGenerator:
             logger.error(f"Error generating cover: {e}")
             return False
     
-    def _create_vertical_cover(self, img: Image.Image, title_text: str, text_location: str = "center") -> Image.Image:
+    def _create_vertical_cover(self, img: Image.Image, title_text: str, text_location: str = "center",
+                               fill_color: Tuple[int, int, int] = (255, 220, 0),
+                               outline_color: Tuple[int, int, int] = (0, 0, 0)) -> Image.Image:
         """Create vertical 3:4 aspect ratio cover"""
         original_width, original_height = img.size
         
@@ -116,11 +137,14 @@ class CoverImageGenerator:
             img_cropped = img
         
         # Add text overlay with 80% width for vertical covers
-        img_with_text = self._add_text_overlay(img_cropped, title_text, max_width_ratio=0.8, text_location=text_location)
+        img_with_text = self._add_text_overlay(img_cropped, title_text, max_width_ratio=0.8, text_location=text_location,
+                                               fill_color=fill_color, outline_color=outline_color)
         
         return img_with_text
     
-    def _add_text_overlay(self, img: Image.Image, title_text: str, max_width_ratio: float = 0.6, text_location: str = "center") -> Image.Image:
+    def _add_text_overlay(self, img: Image.Image, title_text: str, max_width_ratio: float = 0.6, text_location: str = "center",
+                          fill_color: Tuple[int, int, int] = (255, 220, 0),
+                          outline_color: Tuple[int, int, int] = (0, 0, 0)) -> Image.Image:
         """Add styled text overlay to image (single title only with text wrapping)
         
         Args:
@@ -128,6 +152,8 @@ class CoverImageGenerator:
             title_text: Text to overlay
             max_width_ratio: Ratio of image width to use for text (default: 0.6)
             text_location: Text position on cover (default: "center"). Options: "top", "upper_middle", "bottom", "center"
+            fill_color: RGB tuple for text fill color (default: yellow 255,220,0)
+            outline_color: RGB tuple for text outline color (default: black 0,0,0)
         """
 
 
@@ -162,13 +188,13 @@ class CoverImageGenerator:
         for i, line in enumerate(wrapped_lines):
             line_y = start_y + (i * line_height)
             
-            # Draw line (yellow with black outline)
+            # Draw line with configurable colors
             self._draw_outlined_text(
                 draw, line, title_font,
                 width // 2, line_y,
-                fill_color=(255, 220, 0),  # Yellow
-                outline_color=(0, 0, 0),
-                outline_width=8  # Increased from 6 to 8 for bolder text
+                fill_color=fill_color,
+                outline_color=outline_color,
+                outline_width=8
             )
         
         return img

@@ -135,6 +135,7 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 | `--llm-provider` | LLM provider (`qwen` or `openrouter`) | `qwen` |
 | `--language` | Output language (`zh` or `en`) | `zh` |
 | `--title-style` | Title artistic style (see list below) | `fire_flame` |
+| `--title-font-size` | Font size preset for artistic titles. Options: small(30px), medium(40px), large(50px), xlarge(60px) (default: medium=40px) | `medium` |
 | `--browser` | Browser for cookies (`chrome`/`firefox`/`edge`/`safari`) | `firefox` |
 | `--force-whisper` | Force Whisper transcription (ignore platform subtitles) | Off |
 | `--skip-transcript` | Skip transcript generation (use existing transcript files) | Off |
@@ -146,6 +147,8 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 | `--skip-cover` | Don't generate cover images | Off |
 | `--max-clips` | Maximum number of highlight clips | `5` |
 | `--cover-text-location` | Cover text position (`top`/`upper_middle`/`bottom`/`center`) | `center` |
+| `--cover-fill-color` | Cover text fill color (`yellow`/`red`/`white`/`cyan`/`green`/`orange`/`pink`/`purple`/`gold`/`silver`) | `yellow` |
+| `--cover-outline-color` | Cover text outline color (`yellow`/`red`/`white`/`cyan`/`green`/`orange`/`pink`/`purple`/`gold`/`silver`/`black`) | `black` |
 | `-f`, `--filename` | Custom output filename template | None |
 | `-v`, `--verbose` | Enable verbose logging | Off |
 | `--debug` | Enable debug mode (export full LLM prompts) | Off |

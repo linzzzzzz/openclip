@@ -16,6 +16,14 @@ import os
 logger = logging.getLogger(__name__)
 
 
+TITLE_FONT_SIZES: Dict[str, int] = {
+    "small": 30,
+    "medium": 40,
+    "large": 50,
+    "xlarge": 60,
+}
+
+
 class ArtisticTextRenderer:
     """Artistic text renderer for Chinese and other languages"""
     
@@ -438,7 +446,8 @@ class TitleAdder:
     def add_titles_to_clips(self,
                            clips_dir: str,
                            analysis_file: str,
-                           title_style: str = 'crystal_ice') -> Dict[str, Any]:
+                           title_style: str = 'crystal_ice',
+                           font_size: int = 35) -> Dict[str, Any]:
         """
         Add titles to generated clips
         
@@ -446,6 +455,7 @@ class TitleAdder:
             clips_dir: Directory containing clips without titles
             analysis_file: Path to top_engaging_moments.json
             title_style: Style for artistic text rendering
+            font_size: Font size for title text (default: 35)
             
         Returns:
             Dictionary with processing results
@@ -492,7 +502,8 @@ class TitleAdder:
                     str(input_path),
                     title,
                     str(output_path),
-                    title_style
+                    title_style,
+                    font_size
                 )
                 
                 if success:
@@ -540,7 +551,7 @@ class TitleAdder:
         return title.strip('_')
     
     def _add_artistic_title(self, input_video: str, title: str,
-                           output_video: str, title_style: str) -> bool:
+                           output_video: str, title_style: str, font_size: int = 40) -> bool:
         """Add artistic title overlay to video"""
         try:
             video = VideoFileClip(input_video)
@@ -565,7 +576,7 @@ class TitleAdder:
             # Create artistic text
             artistic_img = self.renderer.create_artistic_text(
                 title,
-                font_size=40,
+                font_size=font_size,
                 style=title_style
             )
             

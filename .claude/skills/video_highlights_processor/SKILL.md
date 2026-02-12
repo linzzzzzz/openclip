@@ -1,6 +1,6 @@
 ---
 name: "video_highlights_processor"
-description: "Processes videos to identify engaging moments, generate transcripts, and create highlight clips with artistic titles and custom cover images. Use when user needs to: extract highlights from long videos or livestreams, clip or cut best moments from videos, process Bilibili/YouTube URLs or local video files, generate transcripts via Whisper, analyze content for engaging moments, create short-form clips with styled titles and covers, adjust cover text position, or find and export memorable scenes from recordings."
+description: "Processes videos to identify engaging moments, generate transcripts, and create highlight clips with artistic titles and custom cover images. Use when user needs to: extract highlights from long videos or livestreams, clip or cut best moments from videos, process Bilibili/YouTube URLs or local video files, generate transcripts via Whisper, analyze content for engaging moments, create short-form clips with styled titles and covers, adjust cover text position and colors, or find and export memorable scenes from recordings."
 ---
 
 # Video Highlights Processor Skill
@@ -36,7 +36,10 @@ For local files with existing subtitles, place the `.srt` file in the same direc
 | `--max-clips <n>` | `5` | Maximum number of highlight clips |
 | `--browser <browser>` | `firefox` | Browser for cookies: `chrome`, `firefox`, `edge`, `safari` |
 | `--title-style <style>` | `fire_flame` | Title style: `gradient_3d`, `neon_glow`, `metallic_gold`, `rainbow_3d`, `crystal_ice`, `fire_flame`, `metallic_silver`, `glowing_plasma`, `stone_carved`, `glass_transparent` |
+| `--title-font-size <size>` | `medium` | Font size preset for artistic titles. Options: small(30px), medium(40px), large(50px), xlarge(60px) |
 | `--cover-text-location <loc>` | `center` | Cover text position: `top`, `upper_middle`, `bottom`, `center` |
+| `--cover-fill-color <color>` | `yellow` | Cover text fill color: `yellow`, `red`, `white`, `cyan`, `green`, `orange`, `pink`, `purple`, `gold`, `silver` |
+| `--cover-outline-color <color>` | `black` | Cover text outline color: `yellow`, `red`, `white`, `cyan`, `green`, `orange`, `pink`, `purple`, `gold`, `silver`, `black` |
 | `--language <lang>` | `zh` | Output language: `zh` (Chinese), `en` (English) |
 | `--llm-provider <provider>` | `qwen` | LLM provider: `qwen`, `openrouter` |
 | `-f`, `--filename <template>` | — | yt-dlp template: `%(title)s`, `%(uploader)s`, `%(id)s`, etc. |

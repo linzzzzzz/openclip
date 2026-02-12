@@ -135,6 +135,7 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 | `--llm-provider` | LLM 提供商（`qwen` 或 `openrouter`） | `qwen` |
 | `--language` | 输出语言（`zh` 或 `en`） | `zh` |
 | `--title-style` | Banner 标题艺术风格（见下方列表） | `fire_flame` |
+| `--title-font-size` | 艺术标题字体大小（可选：small=30px, medium=40px, large=50px, xlarge=60px，默认：medium=40px） | `medium` |
 | `--browser` | 用于 cookie 的浏览器（`chrome`/`firefox`/`edge`/`safari`） | `firefox` |
 | `--force-whisper` | 强制使用 Whisper 转录（忽略平台字幕） | 关 |
 | `--skip-transcript` | 跳过转录生成（使用已有转录文件） | 关 |
@@ -146,6 +147,8 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 | `--skip-cover` | 不生成封面图片 | 关 |
 | `--max-clips` | 最大精彩片段数量 | `5` |
 | `--cover-text-location` | 封面文字位置（`top`/`upper_middle`/`bottom`/`center`） | `center` |
+| `--cover-fill-color` | 封面文字填充颜色（`yellow`/`red`/`white`/`cyan`/`green`/`orange`/`pink`/`purple`/`gold`/`silver`） | `yellow` |
+| `--cover-outline-color` | 封面文字描边颜色（`yellow`/`red`/`white`/`cyan`/`green`/`orange`/`pink`/`purple`/`gold`/`silver`/`black`） | `black` |
 | `-f`, `--filename` | 自定义输出文件名模板 | 无 |
 | `-v`, `--verbose` | 开启详细日志 | 关 |
 | `--debug` | 开启调试模式（导出完整 LLM 提示词） | 关 |

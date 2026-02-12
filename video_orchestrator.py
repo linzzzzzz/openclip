@@ -10,7 +10,7 @@ import argparse
 import logging
 import re
 from pathlib import Path
-from typing import Optional, Callable, Dict, Any
+from typing import Optional, Callable, Dict, Any, Tuple
 from datetime import datetime
 import os
 import shutil
@@ -21,8 +21,8 @@ from core.video_splitter import VideoSplitter
 from core.transcript_generation_whisper import TranscriptProcessor
 from core.engaging_moments_analyzer import EngagingMomentsAnalyzer
 from core.clip_generator import ClipGenerator
-from core.title_adder import TitleAdder
-from core.cover_image_generator import CoverImageGenerator
+from core.title_adder import TitleAdder, TITLE_FONT_SIZES
+from core.cover_image_generator import CoverImageGenerator, COVER_COLORS
 
 # Import our utilities (including processing result classes)
 from core.video_utils import (
@@ -55,13 +55,16 @@ class VideoOrchestrator:
                 generate_clips: bool = True,
                 add_titles: bool = True,
                 title_style: str = DEFAULT_TITLE_STYLE,
+                title_font_size: str = 'medium',
                 use_background: bool = False,
                 generate_cover: bool = True,
                 language: str = "zh",
                 debug: bool = False,
                 custom_prompt_file: Optional[str] = None,
                 max_clips: int = MAX_CLIPS,
-                cover_text_location: str = "center"):
+                cover_text_location: str = "center",
+                cover_fill_color: str = "yellow",
+                cover_outline_color: str = "black"):
         """
         Initialize the video orchestrator
 
@@ -76,12 +79,15 @@ class VideoOrchestrator:
             generate_clips: Whether to generate clips from engaging moments
             add_titles: Whether to add artistic titles to clips
             title_style: Style for artistic titles (crystal_ice, gradient_3d, neon_glow, etc.)
+            title_font_size: Font size preset for artistic titles (default: medium, 40px). Options: small(30px), medium(40px), large(50px), xlarge(60px)
             use_background: Whether to include background information in analysis prompts
             generate_cover: Whether to generate cover images
             language: Language for output ("zh" for Chinese, "en" for English)
             debug: Enable debug mode to export full prompts sent to LLM
             custom_prompt_file: Path to custom prompt file (optional)
             cover_text_location: Text position on cover images (default: "center"). Options: "top", "upper_middle", "bottom", "center"
+            cover_fill_color: Color name for cover text fill (default: "yellow"). Options: yellow, red, white, cyan, green, orange, pink, purple, gold, silver
+            cover_outline_color: Color name for cover text outline (default: "black"). Options: yellow, red, white, cyan, green, orange, pink, purple, gold, silver, black
         """
 
 
@@ -92,7 +98,10 @@ class VideoOrchestrator:
         self.llm_provider = llm_provider.lower()
         self.custom_prompt_file = custom_prompt_file
         self.use_background = use_background
+        self.title_font_size = TITLE_FONT_SIZES.get(title_font_size, 40)
         self.cover_text_location = cover_text_location
+        self.cover_fill_color = cover_fill_color
+        self.cover_outline_color = cover_outline_color
 
         # Initialize processing components
         # Note: Downloader and splitter will be configured per-video later
@@ -368,7 +377,8 @@ class VideoOrchestrator:
                     title_result = self.title_adder.add_titles_to_clips(
                         clip_result['output_dir'],
                         engaging_result['aggregated_file'],
-                        self.title_style
+                        self.title_style,
+                        self.title_font_size
                     )
                     result.title_addition = title_result
             elif self.clip_generator and not engaging_result:
@@ -688,7 +698,9 @@ class VideoOrchestrator:
                     moment_title,
                     str(cover_path),
                     frame_time=0.0,  # Use first frame of the clip
-                    text_location=self.cover_text_location
+                    text_location=self.cover_text_location,
+                    fill_color=self.cover_fill_color,
+                    outline_color=self.cover_outline_color
                 )
                 
                 if success:
@@ -802,6 +814,9 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
                        choices=['gradient_3d', 'neon_glow', 'metallic_gold', 'rainbow_3d', 'crystal_ice',
                                'fire_flame', 'metallic_silver', 'glowing_plasma', 'stone_carved', 'glass_transparent'],
                        help=f'Visual style for title banner (default: {DEFAULT_TITLE_STYLE})')
+    parser.add_argument('--title-font-size', default='medium',
+                       choices=list(TITLE_FONT_SIZES.keys()),
+                       help=f'Font size for artistic titles (default: medium, {TITLE_FONT_SIZES["medium"]}px). Options: {", ".join(TITLE_FONT_SIZES.keys())}')
     parser.add_argument('--browser', default='firefox',
                        choices=['chrome', 'firefox', 'edge', 'safari'],
                        help='Browser for cookie extraction (default: firefox)')
@@ -814,6 +829,12 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
     parser.add_argument('--cover-text-location', default='center',
                        choices=['top', 'upper_middle', 'bottom', 'center'],
                        help='Text position on cover images (default: center)')
+    parser.add_argument('--cover-fill-color', default='yellow',
+                       choices=list(COVER_COLORS.keys()),
+                       help=f'Cover text fill color (default: yellow). Options: {", ".join(COVER_COLORS.keys())}')
+    parser.add_argument('--cover-outline-color', default='black',
+                       choices=list(COVER_COLORS.keys()),
+                       help=f'Cover text outline color (default: black). Options: {", ".join(COVER_COLORS.keys())}')
     parser.add_argument('-f', '--filename',
                        help='Custom filename template')
     parser.add_argument('-v', '--verbose', action='store_true',
@@ -824,6 +845,13 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
 
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
+
+    def parse_rgb_color(color_name: str) -> Tuple[int, int, int]:
+        color_name = color_name.lower().strip()
+        if color_name not in COVER_COLORS:
+            logger.warning(f"Unknown color '{color_name}', using default. Available colors: {', '.join(COVER_COLORS.keys())}")
+            return (255, 220, 0) if 'fill' in color_name or 'yellow' in color_name else (0, 0, 0)
+        return COVER_COLORS[color_name]
 
     # Get API key from environment
     api_key = os.getenv(API_KEY_ENV_VARS.get(args.llm_provider, "QWEN_API_KEY"))
@@ -840,12 +868,15 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
         generate_clips=not args.skip_clips,
         add_titles=not args.skip_titles,
         title_style=args.title_style,
+        title_font_size=args.title_font_size,
         use_background=args.use_background,
         generate_cover=not args.skip_cover,
         language=args.language,
         debug=args.debug,
         max_clips=args.max_clips,
-        cover_text_location=args.cover_text_location
+        cover_text_location=args.cover_text_location,
+        cover_fill_color=parse_rgb_color(args.cover_fill_color),
+        cover_outline_color=parse_rgb_color(args.cover_outline_color)
     )
     
     def progress_callback(status: str, progress: float):
