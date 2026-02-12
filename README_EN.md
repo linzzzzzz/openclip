@@ -44,6 +44,8 @@ Give it a video URL or local file, and it handles the full pipeline: **Download 
   - **Qwen API Key** - Get your key from [Alibaba Cloud](https://dashscope.aliyun.com/)
   - **OpenRouter API Key** - Get your key from [OpenRouter](https://openrouter.ai/)
 
+- **Firefox Browser** (optional) - For more stable Bilibili video downloads
+
 ### Managed by uv
 
 The following are installed automatically when you run `uv sync`:
@@ -134,21 +136,21 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 | `-o`, `--output` | Custom output directory | `processed_videos` |
 | `--llm-provider` | LLM provider (`qwen` or `openrouter`) | `qwen` |
 | `--language` | Output language (`zh` or `en`) | `zh` |
-| `--title-style` | Title artistic style (see list below) | `fire_flame` |
-| `--title-font-size` | Font size preset for artistic titles. Options: small(30px), medium(40px), large(50px), xlarge(60px) (default: medium=40px) | `medium` |
 | `--browser` | Browser for cookies (`chrome`/`firefox`/`edge`/`safari`) | `firefox` |
 | `--force-whisper` | Force Whisper transcription (ignore platform subtitles) | Off |
-| `--skip-transcript` | Skip transcript generation (use existing transcript files) | Off |
 | `--use-background` | Use background info for analysis | Off |
+| `--max-clips` | Maximum number of highlight clips | `5` |
+| `--title-style` | Title artistic style (see list below) | `fire_flame` |
+| `--title-font-size` | Font size preset for artistic titles. Options: small(30px), medium(40px), large(50px), xlarge(60px) (default: medium=40px) | `medium` |
+| `--cover-text-location` | Cover text position (`top`/`upper_middle`/`bottom`/`center`) | `center` |
+| `--cover-fill-color` | Cover text fill color (`yellow`/`red`/`white`/`cyan`/`green`/`orange`/`pink`/`purple`/`gold`/`silver`) | `yellow` |
+| `--cover-outline-color` | Cover text outline color (`yellow`/`red`/`white`/`cyan`/`green`/`orange`/`pink`/`purple`/`gold`/`silver`/`black`) | `black` |
+| `--skip-transcript` | Skip transcript generation (use existing transcript files) | Off |
 | `--skip-download` | Skip download, use existing video | Off |
 | `--skip-analysis` | Skip analysis, use existing results | Off |
 | `--skip-clips` | Don't generate clips | Off |
 | `--skip-titles` | Don't add artistic titles | Off |
 | `--skip-cover` | Don't generate cover images | Off |
-| `--max-clips` | Maximum number of highlight clips | `5` |
-| `--cover-text-location` | Cover text position (`top`/`upper_middle`/`bottom`/`center`) | `center` |
-| `--cover-fill-color` | Cover text fill color (`yellow`/`red`/`white`/`cyan`/`green`/`orange`/`pink`/`purple`/`gold`/`silver`) | `yellow` |
-| `--cover-outline-color` | Cover text outline color (`yellow`/`red`/`white`/`cyan`/`green`/`orange`/`pink`/`purple`/`gold`/`silver`/`black`) | `black` |
 | `-f`, `--filename` | Custom output filename template | None |
 | `-v`, `--verbose` | Enable verbose logging | Off |
 | `--debug` | Enable debug mode (export full LLM prompts) | Off |
@@ -233,10 +235,6 @@ Edit prompt templates in `prompts/`:
 - `engaging_moments_part_requirement.md` - Analysis criteria for each part
 - `engaging_moments_agg_requirement.md` - Aggregation criteria for top moments
 
-### Adding New Artistic Styles
-
-Edit `title_adder.py` to add new visual effects.
-
 ## 📎 Others
 
 <details>
@@ -314,10 +312,6 @@ Contributions welcome! Areas for improvement:
 - Performance optimizations
 - Additional language support
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
-
 ## 📞 Support
 
 For issues or questions:
@@ -325,3 +319,13 @@ For issues or questions:
 2. Test with a short video first
 3. Open an issue on GitHub
 4. Join our [Discord community](https://discord.gg/KsC4Keaq) for discussions
+
+## ⭐ Enjoying OpenClip?
+
+If this project has been helpful to you, please consider giving us a Star on GitHub! ⭐
+
+Your support motivates us to keep improving!
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details

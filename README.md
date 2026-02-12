@@ -44,6 +44,8 @@
   - **Qwen API Key** - 从[阿里云](https://dashscope.aliyun.com/)获取密钥
   - **OpenRouter API Key** - 从[OpenRouter](https://openrouter.ai/)获取密钥
 
+- **Firefox 浏览器** (可选) - 使用浏览器 Cookie 让Bilibili 视频下载更稳定
+
 ### 由 uv 自动管理
 
 运行 `uv sync` 时会自动安装以下依赖：
@@ -134,21 +136,21 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 | `-o`, `--output` | 自定义输出目录 | `processed_videos` |
 | `--llm-provider` | LLM 提供商（`qwen` 或 `openrouter`） | `qwen` |
 | `--language` | 输出语言（`zh` 或 `en`） | `zh` |
-| `--title-style` | Banner 标题艺术风格（见下方列表） | `fire_flame` |
-| `--title-font-size` | 艺术标题字体大小（可选：small=30px, medium=40px, large=50px, xlarge=60px，默认：medium=40px） | `medium` |
 | `--browser` | 用于 cookie 的浏览器（`chrome`/`firefox`/`edge`/`safari`） | `firefox` |
 | `--force-whisper` | 强制使用 Whisper 转录（忽略平台字幕） | 关 |
-| `--skip-transcript` | 跳过转录生成（使用已有转录文件） | 关 |
 | `--use-background` | 使用背景信息辅助分析 | 关 |
+| `--max-clips` | 最大精彩片段数量 | `5` |
+| `--title-style` | Banner 标题艺术风格（见下方列表） | `fire_flame` |
+| `--title-font-size` | 艺术标题字体大小（可选：small=30px, medium=40px, large=50px, xlarge=60px，默认：medium=40px） | `medium` |
+| `--cover-text-location` | 封面文字位置（`top`/`upper_middle`/`bottom`/`center`） | `center` |
+| `--cover-fill-color` | 封面文字填充颜色（`yellow`/`red`/`white`/`cyan`/`green`/`orange`/`pink`/`purple`/`gold`/`silver`） | `yellow` |
+| `--cover-outline-color` | 封面文字描边颜色（`yellow`/`red`/`white`/`cyan`/`green`/`orange`/`pink`/`purple`/`gold`/`silver`/`black`） | `black` |
+| `--skip-transcript` | 跳过转录生成（使用已有转录文件） | 关 |
 | `--skip-download` | 跳过下载，使用已下载的视频 | 关 |
 | `--skip-analysis` | 跳过分析，使用已有分析结果 | 关 |
 | `--skip-clips` | 不生成剪辑 | 关 |
 | `--skip-titles` | 不添加艺术标题 | 关 |
 | `--skip-cover` | 不生成封面图片 | 关 |
-| `--max-clips` | 最大精彩片段数量 | `5` |
-| `--cover-text-location` | 封面文字位置（`top`/`upper_middle`/`bottom`/`center`） | `center` |
-| `--cover-fill-color` | 封面文字填充颜色（`yellow`/`red`/`white`/`cyan`/`green`/`orange`/`pink`/`purple`/`gold`/`silver`） | `yellow` |
-| `--cover-outline-color` | 封面文字描边颜色（`yellow`/`red`/`white`/`cyan`/`green`/`orange`/`pink`/`purple`/`gold`/`silver`/`black`） | `black` |
 | `-f`, `--filename` | 自定义输出文件名模板 | 无 |
 | `-v`, `--verbose` | 开启详细日志 | 关 |
 | `--debug` | 开启调试模式（导出完整 LLM 提示词） | 关 |
@@ -233,10 +235,6 @@ uv run python video_orchestrator.py --use-background "VIDEO_URL"
 - `engaging_moments_part_requirement.md` - 每个片段的分析标准
 - `engaging_moments_agg_requirement.md` - 顶级时刻的汇总标准
 
-### 添加新的艺术风格
-
-编辑 `title_adder.py` 以添加新的视觉效果。
-
 ## 📎 其他
 
 <details>
@@ -314,10 +312,6 @@ OpenClip 受 [AutoClip](https://github.com/zhouxiaoka/autoclip) 启发，但采�
 - 性能优化
 - 额外的语言支持
 
-## 📄 许可证
-
-本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件
-
 ## 📞 支持
 
 如有问题或疑问：
@@ -325,3 +319,13 @@ OpenClip 受 [AutoClip](https://github.com/zhouxiaoka/autoclip) 启发，但采�
 2. 先用短视频测试
 3. 在 GitHub 上提出 issue
 4. 加入我们的 [Discord 社区](https://discord.gg/KsC4Keaq) 讨论交流
+
+## ⭐ 喜欢这个项目？
+
+如果这个项目对你有帮助，欢迎在 GitHub 上给我们一个 Star！⭐
+
+你的支持是我们持续改进的动力！
+
+## 📄 许可证
+
+本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件
