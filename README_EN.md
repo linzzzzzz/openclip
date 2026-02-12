@@ -24,13 +24,10 @@ Give it a video URL or local file, and it handles the full pipeline: **Download 
 
 - **Flexible Input**: Bilibili/YouTube URLs or local video files
 - **Smart Transcription**: Uses platform subtitles when available, falls back to Whisper
-- **Automatic Splitting**: Handles videos of any length by splitting into 20-minute parts
 - **AI Analysis**: Identifies engaging moments based on content, interaction, and entertainment value
-- **Clip Generation**: Extracts the most engaging moments as standalone video clips
-- **Titles and Covers**: Adds custom titles and cover images to videos
+- **Clip Generation**: Extracts the most engaging moments as standalone video clips, automatically generating titles and cover images
 - **Background Context**: Optionally add background information (e.g., streamer names) for better analysis
 - **Triple Interface Support**: Streamlit web interface, Agent Skills, and command-line interface for different user needs
-- **Real-time Preview**: Streamlit interface provides real-time preview of generated content
 - **Agent Skills**: Built-in [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and [TRAE](https://www.trae.ai/) agent skills for processing videos with natural language
 
 ## 📋 Prerequisites
@@ -134,19 +131,24 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 | Argument | Description | Default |
 |----------|-------------|---------|
 | `VIDEO_URL_OR_PATH` | Video URL or local file path (positional) | Required |
-| `-o`, `--output-dir` | Custom output directory | `processed_videos` |
+| `-o`, `--output` | Custom output directory | `processed_videos` |
 | `--llm-provider` | LLM provider (`qwen` or `openrouter`) | `qwen` |
 | `--language` | Output language (`zh` or `en`) | `zh` |
 | `--title-style` | Title artistic style (see list below) | `fire_flame` |
-| `--max-duration` | Split duration in minutes | `20` |
 | `--browser` | Browser for cookies (`chrome`/`firefox`/`edge`/`safari`) | `firefox` |
 | `--force-whisper` | Force Whisper transcription (ignore platform subtitles) | Off |
+| `--skip-transcript` | Skip transcript generation (use existing transcript files) | Off |
 | `--use-background` | Use background info for analysis | Off |
 | `--skip-download` | Skip download, use existing video | Off |
 | `--skip-analysis` | Skip analysis, use existing results | Off |
-| `--no-clips` | Don't generate clips | Off |
-| `--no-titles` | Don't add artistic titles | Off |
+| `--skip-clips` | Don't generate clips | Off |
+| `--skip-titles` | Don't add artistic titles | Off |
 | `--skip-cover` | Don't generate cover images | Off |
+| `--max-clips` | Maximum number of highlight clips | `5` |
+| `--cover-text-location` | Cover text position (`top`/`upper_middle`/`bottom`/`center`) | `center` |
+| `-f`, `--filename` | Custom output filename template | None |
+| `-v`, `--verbose` | Enable verbose logging | Off |
+| `--debug` | Enable debug mode (export full LLM prompts) | Off |
 
 <details>
 <summary>🎨 Title Artistic Styles</summary>

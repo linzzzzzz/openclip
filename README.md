@@ -24,13 +24,10 @@
 
 - **灵活输入**：支持 Bilibili、YouTube URL 或本地视频文件
 - **智能转录**：优先使用平台字幕，回退到 Whisper
-- **自动分割**：通过分割为20分钟片段处理任意长度视频
 - **AI 分析**：基于内容、互动和娱乐价值识别精彩时刻
-- **剪辑生成**：提取最精彩时刻为独立视频剪辑
-- **添加标题和封面**：为视频添加自定义标题和封面图片
+- **剪辑生成**：提取最精彩时刻为独立视频剪辑，并自动生成标题和封面图片
 - **背景上下文**：可选的添加背景信息（如主播姓名等）以获得更好的分析
 - **三界面支持**：Streamlit 网页界面，Agent Skills 和命令行界面，满足不同用户需求
-- **实时预览**：Streamlit 界面提供生成内容的实时预览
 - **Agent Skills**：内置 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 和 [TRAE](https://www.trae.ai/) agent skill，用自然语言即可处理视频
 
 ## 📋 前置要求
@@ -134,19 +131,24 @@ uv run python video_orchestrator.py "/path/to/video.mp4"
 | 参数 | 说明 | 默认值 |
 |------|------|--------|
 | `VIDEO_URL_OR_PATH` | 视频 URL 或本地文件路径（位置参数） | 必填 |
-| `-o`, `--output-dir` | 自定义输出目录 | `processed_videos` |
+| `-o`, `--output` | 自定义输出目录 | `processed_videos` |
 | `--llm-provider` | LLM 提供商（`qwen` 或 `openrouter`） | `qwen` |
 | `--language` | 输出语言（`zh` 或 `en`） | `zh` |
 | `--title-style` | Banner 标题艺术风格（见下方列表） | `fire_flame` |
-| `--max-duration` | 视频分割时长，单位分钟 | `20` |
 | `--browser` | 用于 cookie 的浏览器（`chrome`/`firefox`/`edge`/`safari`） | `firefox` |
 | `--force-whisper` | 强制使用 Whisper 转录（忽略平台字幕） | 关 |
+| `--skip-transcript` | 跳过转录生成（使用已有转录文件） | 关 |
 | `--use-background` | 使用背景信息辅助分析 | 关 |
 | `--skip-download` | 跳过下载，使用已下载的视频 | 关 |
 | `--skip-analysis` | 跳过分析，使用已有分析结果 | 关 |
 | `--skip-clips` | 不生成剪辑 | 关 |
 | `--skip-titles` | 不添加艺术标题 | 关 |
 | `--skip-cover` | 不生成封面图片 | 关 |
+| `--max-clips` | 最大精彩片段数量 | `5` |
+| `--cover-text-location` | 封面文字位置（`top`/`upper_middle`/`bottom`/`center`） | `center` |
+| `-f`, `--filename` | 自定义输出文件名模板 | 无 |
+| `-v`, `--verbose` | 开启详细日志 | 关 |
+| `--debug` | 开启调试模式（导出完整 LLM 提示词） | 关 |
 
 <details>
 <summary>🎨 Banner 标题艺术风格</summary>
