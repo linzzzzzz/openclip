@@ -21,11 +21,10 @@ Give it a video URL or local file, and it handles the full pipeline: **Download 
 <video src="https://github.com/user-attachments/assets/1ddf8318-f6ad-418c-9c4c-bbac0dedc668" controls width="600" height="450"></video>
 
 ## ✨ Features
-
 - **Flexible Input**: Bilibili/YouTube URLs or local video files
 - **Smart Transcription**: Uses platform subtitles when available, falls back to Whisper
 - **AI Analysis**: Identifies engaging moments based on content, interaction, and entertainment value
-- **Clip Generation**: Extracts the most engaging moments as standalone video clips, automatically generating titles and cover images
+- **Clip Generation**: Extracts the most engaging moments as standalone video clips, automatically generating subtitle files, titles, and cover images
 - **Background Context**: Optionally add background information (e.g., streamer names) for better analysis
 - **Triple Interface Support**: Streamlit web interface, Agent Skills, and command-line interface for different user needs
 - **Agent Skills**: Built-in [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and [TRAE](https://www.trae.ai/) agent skills for processing videos with natural language
@@ -201,8 +200,13 @@ After processing, the output directory is structured as follows:
 processed_videos/{video_name}/
 ├── downloads/            # Original video, subtitles, and metadata
 ├── splits/               # Split parts and AI analysis results
-├── clips/                # Generated highlight clips and summary
+├── clips/                # Generated highlight clips, subtitles, and summary
+│   ├── rank_01_xxx.mp4
+│   ├── rank_01_xxx.srt
+│   └── engaging_moments_summary.md
 └── clips_with_titles/    # Final clips with artistic titles and cover images
+    ├── rank_01_xxx.mp4
+    └── cover_rank_01_xxx.jpg
 ```
 
 ## 🎨 Customization

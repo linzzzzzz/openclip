@@ -21,11 +21,10 @@
 <video src="https://github.com/user-attachments/assets/1ddf8318-f6ad-418c-9c4c-bbac0dedc668" controls width="600" height="450"></video>
 
 ## ✨ 特性
-
 - **灵活输入**：支持 Bilibili、YouTube URL 或本地视频文件
 - **智能转录**：优先使用平台字幕，回退到 Whisper
 - **AI 分析**：基于内容、互动和娱乐价值识别精彩时刻
-- **剪辑生成**：提取最精彩时刻为独立视频剪辑，并自动生成标题和封面图片
+- **剪辑生成**：提取最精彩时刻为独立视频剪辑，自动生成字幕文件、标题和封面图片
 - **背景上下文**：可选的添加背景信息（如主播姓名等）以获得更好的分析
 - **三界面支持**：Streamlit 网页界面，Agent Skills 和命令行界面，满足不同用户需求
 - **Agent Skills**：内置 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 和 [TRAE](https://www.trae.ai/) agent skill，用自然语言即可处理视频
@@ -201,8 +200,13 @@ uv run python video_orchestrator.py --skip-download --title-style crystal_ice "V
 processed_videos/{video_name}/
 ├── downloads/            # 原始视频、字幕和元数据
 ├── splits/               # 分割片段和 AI 分析结果
-├── clips/                # 生成的精彩剪辑和摘要
+├── clips/                # 生成的精彩剪辑、字幕和摘要
+│   ├── rank_01_xxx.mp4
+│   ├── rank_01_xxx.srt
+│   └── engaging_moments_summary.md
 └── clips_with_titles/    # 带艺术标题的最终剪辑和封面图片
+    ├── rank_01_xxx.mp4
+    └── cover_rank_01_xxx.jpg
 ```
 
 ## 🎨 自定义
