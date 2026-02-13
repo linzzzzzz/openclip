@@ -356,12 +356,20 @@ class VideoOrchestrator:
                 else:
                     video_dir = Path(result.video_path).parent
                 
+                # Determine subtitle directory
+                subtitle_dir = None
+                if result.was_split and result.transcript_parts:
+                    subtitle_dir = Path(result.transcript_parts[0]).parent
+                elif result.transcript_path:
+                    subtitle_dir = Path(result.transcript_path).parent
+                
                 # Update clip generator output dir
                 self.clip_generator.output_dir = video_clips_dir
                 
                 clip_result = self.clip_generator.generate_clips_from_analysis(
                     engaging_result['aggregated_file'],
-                    str(video_dir)
+                    str(video_dir),
+                    str(subtitle_dir) if subtitle_dir else None
                 )
                 result.clip_generation = clip_result
                 
