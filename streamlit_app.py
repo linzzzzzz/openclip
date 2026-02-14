@@ -830,3 +830,49 @@ st.markdown("""
 ---
 **Made with ❤️ for content creators**
 """)
+
+# GitHub buttons row
+col1, col2, col3 = st.columns([1, 1, 4])
+with col1:
+    st.markdown("""
+    <a href="https://github.com/linzzzzzz/openclip/issues" target="_blank" style="text-decoration: none;">
+        <button style="
+            background-color: transparent;
+            color: #58a6ff;
+            border: none;
+            outline: none;
+            box-shadow: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        ">
+            <span>🐛</span> Report Bug
+        </button>
+    </a>
+    """, unsafe_allow_html=True)
+with col2:
+    st.markdown("""
+    <a href="https://github.com/linzzzzzz/openclip" target="_blank" style="text-decoration: none;">
+        <button style="
+            background-color: transparent;
+            color: #f0883e;
+            border: none;
+            outline: none;
+            box-shadow: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        ">
+            <span>⭐</span> Star on GitHub
+        </button>
+    </a>
+    """, unsafe_allow_html=True)
