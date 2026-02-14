@@ -308,12 +308,13 @@ Thanks to [AutoClip](https://github.com/zhouxiaoka/autoclip) for their contribut
 
 ## 🤝 Contributing
 
-Contributions welcome! Areas for improvement:
+PRs welcome! We aim to keep the codebase lightweight and readable:
 
-- Additional artistic title styles
-- Support for more video platforms
+**Areas for improvement**
 - Improved AI analysis prompts
 - Performance optimizations
+- Multimodal analysis
+- Support for more video platforms
 - Additional language support
 
 ## 📞 Support
