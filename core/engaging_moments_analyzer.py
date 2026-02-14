@@ -432,7 +432,7 @@ IMPORTANT:
 - start_time and end_time should be in simple format (HH:MM:SS or MM:SS), NOT SRT format with milliseconds
 - Remove any "engagement_score" field if present
 - Ensure "why_engaging" is shorter than 100 characters
-- Use only approved tags: ["co-hosting", "interactive", "humorous", "live-chemistry", "funny", "highlight", "reaction", "gaming", "chat-interaction"]
+- Use only approved tags: ["co-hosting", "interactive", "humorous", "live-chemistry", "funny", "highlight", "reaction", "gaming", "chat-interaction", "insight", "inspiring", "controversial", "relatable", "valuable", "educational"]
 
 Here is the malformed response:
 {malformed_response}
@@ -501,6 +501,10 @@ Please fix the JSON and return ONLY the valid JSON, no explanations:
         result['video_part'] = part_name
         result['total_moments'] = len(result['engaging_moments'])
         result['analysis_timestamp'] = datetime.now().isoformat() + 'Z'
+        
+        # Handle detected_content_type field
+        if 'detected_content_type' not in result:
+            result['detected_content_type'] = 'unknown'
         
         # Validate each moment
         valid_moments = []
@@ -707,7 +711,7 @@ The response should follow this structure:
 IMPORTANT:
 - start_time and end_time should be in simple format (HH:MM:SS or MM:SS), NOT SRT format with milliseconds
 - Ensure all timing information is preserved accurately
-- Use only approved tags: ["co-hosting", "interactive", "humorous", "live-chemistry", "funny", "highlight", "reaction", "gaming", "chat-interaction"]
+- Use only approved tags: ["co-hosting", "interactive", "humorous", "live-chemistry", "funny", "highlight", "reaction", "gaming", "chat-interaction", "insight", "inspiring", "controversial", "relatable", "valuable", "educational"]
 
 Here is the malformed response:
 {malformed_response}

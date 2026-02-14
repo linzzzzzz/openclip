@@ -376,8 +376,12 @@ class VideoOrchestrator:
                 # Step 6: Add artistic titles to clips (if enabled)
                 if self.title_adder and clip_result.get('success'):
                     logger.info("🎨 Step 6: Adding artistic titles to clips...")
-                    if progress_callback:
-                        progress_callback("Adding artistic titles...", 80)
+                    
+                    # Create a wrapper callback to map title progress (0-100) to overall progress (80-90)
+                    def title_progress_callback(status: str, title_progress: float):
+                        if progress_callback:
+                            overall_progress = 80 + (title_progress * 0.1)  # Map 0-100 to 80-90
+                            progress_callback(status, overall_progress)
                     
                     # Update title adder output dir
                     self.title_adder.output_dir = video_clips_with_titles_dir
@@ -386,7 +390,8 @@ class VideoOrchestrator:
                         clip_result['output_dir'],
                         engaging_result['aggregated_file'],
                         self.title_style,
-                        self.title_font_size
+                        self.title_font_size,
+                        progress_callback=title_progress_callback
                     )
                     result.title_addition = title_result
             elif self.clip_generator and not engaging_result:

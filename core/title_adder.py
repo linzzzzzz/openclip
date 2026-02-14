@@ -447,7 +447,8 @@ class TitleAdder:
                            clips_dir: str,
                            analysis_file: str,
                            title_style: str = 'crystal_ice',
-                           font_size: int = 35) -> Dict[str, Any]:
+                           font_size: int = 35,
+                           progress_callback: Optional[callable] = None) -> Dict[str, Any]:
         """
         Add titles to generated clips
         
@@ -456,6 +457,7 @@ class TitleAdder:
             analysis_file: Path to top_engaging_moments.json
             title_style: Style for artistic text rendering
             font_size: Font size for title text (default: 35)
+            progress_callback: Optional callback function(status: str, progress: float) to report progress
             
         Returns:
             Dictionary with processing results
@@ -476,11 +478,17 @@ class TitleAdder:
             
             successful_count = 0
             processed_clips = []
+            total_moments = len(data['top_engaging_moments'])
             
             # Process each engaging moment
-            for moment in data['top_engaging_moments']:
+            for i, moment in enumerate(data['top_engaging_moments']):
                 rank = moment['rank']
                 title = moment['title']
+                
+                # Report progress
+                if progress_callback:
+                    progress = (i / total_moments) * 100
+                    progress_callback(f"Adding titles - clip {i+1}/{total_moments}: {title[:30]}...", progress)
                 
                 # Find input clip
                 safe_title = self._sanitize_filename(title)
@@ -516,6 +524,10 @@ class TitleAdder:
                     logger.info(f"✓ Saved: {output_filename}")
                 else:
                     logger.error(f"✗ Failed: {output_filename}")
+            
+            # Report completion
+            if progress_callback:
+                progress_callback(f"Finished adding titles to {successful_count}/{total_moments} clips", 100)
             
             # Create README
             if processed_clips:

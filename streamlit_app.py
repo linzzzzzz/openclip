@@ -97,7 +97,7 @@ TRANSLATIONS = {
         'force_whisper_help': 'Force transcript generation via Whisper (ignore platform subtitles)',
         'generate_clips_help': 'Generate video clips for engaging moments',
         'max_clips_help': 'Maximum number of highlight clips to generate',
-        'add_titles_help': 'Add artistic titles to video clips',
+        'add_titles_help': 'Add artistic titles to video clips (this step may be slow)',
         'generate_cover_help': 'Generate cover image for the video',
         'use_background_help': 'Use background information from prompts/background/background.md',
         'use_custom_prompt_help': 'Use custom prompt for highlight analysis',
@@ -167,7 +167,7 @@ TRANSLATIONS = {
         'force_whisper_help': '强制通过 Whisper 生成字幕（忽略平台字幕）',
         'generate_clips_help': '为精彩时刻生成视频片段',
         'max_clips_help': '生成高光片段的最大数量',
-        'add_titles_help': '为视频片段添加艺术标题',
+        'add_titles_help': '为视频片段添加艺术标题（此步骤可能较慢）',
         'generate_cover_help': '为视频生成封面图像',
         'use_background_help': '使用 prompts/background/background.md 中的背景信息',
         'use_custom_prompt_help': '使用自定义提示进行高光分析',
@@ -648,6 +648,9 @@ progress_bar = st.progress(min(int(_ps['progress']), 100))
 status_text = st.empty()
 if _ps['status']:
     status_text.text(_ps['status'])
+    # Show notice when adding titles (this step is slow)
+    if "Adding titles" in _ps['status']:
+        st.info("⏳ Adding titles to clips... This step may take a few minutes. Please be patient.")
 
 # Process Video / Cancel buttons
 btn_col1, btn_col2 = st.columns([3, 1])
