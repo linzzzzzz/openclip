@@ -18,7 +18,7 @@ Give it a video URL or local file, and it handles the full pipeline: **Download 
 
 ### Agent Skills Demo
 
-<video src="https://github.com/user-attachments/assets/1ddf8318-f6ad-418c-9c4c-bbac0dedc668" controls width="600" height="450"></video>
+<video src="https://github.com/user-attachments/assets/212855d0-336c-4708-8c43-c57f3e5eecd1" controls width="600" height="450"></video>
 
 ## ✨ Features
 - **Flexible Input**: Bilibili/YouTube URLs or local video files
