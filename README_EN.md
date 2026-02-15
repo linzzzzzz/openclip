@@ -14,7 +14,7 @@ Give it a video URL or local file, and it handles the full pipeline: **Download 
 
 ### Web UI Demo
 
-![OpenClip Demo](demo/demo.gif)
+![OpenClip Demo](demo/demo_en.gif)
 
 ### Agent Skills Demo
 
