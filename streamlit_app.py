@@ -102,6 +102,13 @@ TRANSLATIONS = {
         'use_background_help': 'Use background information from prompts/background/background.md',
         'use_custom_prompt_help': 'Use custom prompt for highlight analysis',
         'advanced_config_notice': 'For advanced options (e.g. video split duration, Whisper model), edit `core/config.py`.',
+        'clip_preview_title': 'Preview Generated Clips',
+        'clip_preview_desc': 'Review the clips below. Uncheck any clips you don\'t want to include in title/cover generation.',
+        'continue_with_clips': 'Continue with {count}/{total} clips',
+        'skip_titles_covers': 'Skip Titles & Covers',
+        'select_deselect_all': 'Select / Deselect All',
+        'no_clips_selected': 'No clips selected. Select at least one clip to continue, or click "Skip" to finish.',
+        'phase2_adding_titles_notice': 'Adding titles and generating covers for selected clips... This may take a few minutes.',
     },
     'zh': {
         'app_title': 'OpenClip',
@@ -172,6 +179,13 @@ TRANSLATIONS = {
         'use_background_help': '使用 prompts/background/background.md 中的背景信息',
         'use_custom_prompt_help': '使用自定义提示进行高光分析',
         'advanced_config_notice': '如需调整高级选项（如视频分割时长、Whisper 模型），请编辑 `core/config.py`。',
+        'clip_preview_title': '预览生成的片段',
+        'clip_preview_desc': '查看下方片段，取消勾选不需要添加标题和封面的片段。',
+        'continue_with_clips': '继续处理 {count}/{total} 个片段',
+        'skip_titles_covers': '跳过标题和封面',
+        'select_deselect_all': '全选 / 取消全选',
+        'no_clips_selected': '未选择任何片段。请至少选择一个片段继续，或点击"跳过"完成。',
+        'phase2_adding_titles_notice': '正在为选中的片段添加标题和生成封面……这可能需要几分钟。',
     }
 }
 
@@ -242,6 +256,17 @@ if 'processing' not in st.session_state:
     st.session_state.processing_thread = None
     st.session_state.processing_outcome = {'result': None, 'error': None}
     st.session_state.progress_state = {'status': '', 'progress': 0}
+
+# Initialize clip preview/selection state (two-phase processing)
+if 'clip_preview_mode' not in st.session_state:
+    st.session_state.clip_preview_mode = False
+    st.session_state.phase1_result = None
+    st.session_state.phase1_params = None
+    st.session_state.clip_selections = {}
+    st.session_state.phase2_processing = False
+    st.session_state.phase2_thread = None
+    st.session_state.phase2_outcome = {'result': None, 'error': None}
+    st.session_state.phase2_progress = {'status': '', 'progress': 0}
 
 # Track if we just processed a video
 just_processed = False
@@ -364,6 +389,10 @@ st.markdown("""
     }
     .stCheckbox > label {
         font-weight: bold;
+    }
+    /* Smaller font for clip preview checkboxes in the main area */
+    .stMainBlockContainer .stCheckbox label p {
+        font-size: 0.8rem !important;
     }
     .video-container {
         border-radius: 8px;
@@ -705,6 +734,26 @@ if process_clicked and not is_processing:
                 _progress['status'] = f"🔄 {clean_status} ({progress:.1f}%)"
                 _progress['progress'] = progress
 
+            # Determine if we need the clip preview step
+            # Preview is shown when clips are generated AND titles or covers are requested
+            needs_preview = generate_clips and (add_titles or generate_cover)
+
+            if needs_preview:
+                # Save original prefs for Phase 2; disable titles/covers in Phase 1
+                st.session_state.phase1_params = {
+                    'add_titles': add_titles,
+                    'generate_cover': generate_cover,
+                    'title_style': title_style,
+                    'output_dir': output_dir,
+                    'api_key': resolved_api_key,
+                    'llm_provider': llm_provider,
+                    'language': language,
+                    'use_background': use_background,
+                    'max_clips': max_clips,
+                }
+            else:
+                st.session_state.phase1_params = None
+
             # Snapshot all parameters for the background thread
             _params = dict(
                 output_dir=output_dir,
@@ -713,10 +762,10 @@ if process_clicked and not is_processing:
                 api_key=resolved_api_key,
                 llm_provider=llm_provider,
                 generate_clips=generate_clips,
-                add_titles=add_titles,
+                add_titles=False if needs_preview else add_titles,
                 title_style=title_style,
                 use_background=use_background,
-                generate_cover=generate_cover,
+                generate_cover=False if needs_preview else generate_cover,
                 language=language,
                 custom_prompt_file=custom_prompt_file,
                 max_clips=max_clips,
@@ -773,6 +822,21 @@ if is_processing:
         st.session_state.processing = False
         st.rerun()
 
+# --- Helper to save and display final results ---
+def _finalize_results(result):
+    data['processing_result'] = {
+        'success': result.success,
+        'error_message': getattr(result, 'error_message', None),
+        'processing_time': getattr(result, 'processing_time', None),
+        'video_info': getattr(result, 'video_info', None),
+        'transcript_source': getattr(result, 'transcript_source', None),
+        'engaging_moments_analysis': getattr(result, 'engaging_moments_analysis', None),
+        'clip_generation': getattr(result, 'clip_generation', None),
+        'title_addition': getattr(result, 'title_addition', None),
+        'cover_generation': getattr(result, 'cover_generation', None),
+    }
+    save_to_file(data)
+
 # --- Handle finished processing result (runs on the rerun after thread completes) ---
 _outcome = st.session_state.processing_outcome
 _finished_result = _outcome['result']
@@ -788,27 +852,195 @@ if not is_processing and (_finished_result is not None or _finished_error is not
         if getattr(_finished_result, 'error_message', None) and 'cancelled' in _finished_result.error_message.lower():
             st.warning("⏹️ Processing was cancelled.")
         elif _finished_result.success:
-            # Save result to file
-            data['processing_result'] = {
-                'success': _finished_result.success,
-                'error_message': getattr(_finished_result, 'error_message', None),
-                'processing_time': getattr(_finished_result, 'processing_time', None),
-                'video_info': getattr(_finished_result, 'video_info', None),
-                'transcript_source': getattr(_finished_result, 'transcript_source', None),
-                'engaging_moments_analysis': getattr(_finished_result, 'engaging_moments_analysis', None),
-                'clip_generation': getattr(_finished_result, 'clip_generation', None),
-                'title_addition': getattr(_finished_result, 'title_addition', None),
-                'cover_generation': getattr(_finished_result, 'cover_generation', None),
-            }
-            save_to_file(data)
-
-            st.header("📊 Results")
-            display_results(_finished_result)
-            just_processed = True
+            # Check if we need the clip preview step
+            clip_gen = getattr(_finished_result, 'clip_generation', None)
+            has_clips = clip_gen and clip_gen.get('success') and clip_gen.get('clips_info')
+            if st.session_state.phase1_params and has_clips:
+                # Enter clip preview mode instead of showing final results
+                st.session_state.clip_preview_mode = True
+                st.session_state.phase1_result = _finished_result
+                st.session_state.clip_selections = {
+                    i: True for i in range(len(clip_gen['clips_info']))
+                }
+                st.rerun()
+            else:
+                # No preview needed — finalize directly
+                _finalize_results(_finished_result)
+                st.header("📊 Results")
+                display_results(_finished_result)
+                just_processed = True
         else:
             st.error(f"❌ Processing failed: {getattr(_finished_result, 'error_message', 'Unknown error')}")
 
+# --- Clip Preview UI (between Phase 1 and Phase 2) ---
+if st.session_state.clip_preview_mode and not st.session_state.phase2_processing:
+    phase1_result = st.session_state.phase1_result
+    clip_gen = phase1_result.clip_generation
 
+    if clip_gen and clip_gen.get('clips_info'):
+        st.header(t['clip_preview_title'])
+        st.write(t['clip_preview_desc'])
+
+        clips_info = clip_gen['clips_info']
+        output_dir_path = Path(clip_gen.get('output_dir', ''))
+
+        # Display clips in 2-column grid with checkboxes
+        cols = st.columns(2, gap="small")
+        for i, clip in enumerate(clips_info):
+            clip_filename = clip.get('filename')
+            if clip_filename:
+                clip_path = output_dir_path / clip_filename
+                if clip_path.exists():
+                    with cols[i % 2]:
+                        title = clip.get('title', 'Untitled')
+                        rank = clip.get('rank', i + 1)
+                        # Truncate title to keep checkbox labels single-line
+                        max_label_len = 25
+                        short_title = title if len(title) <= max_label_len else title[:max_label_len] + '...'
+                        selected = st.checkbox(
+                            f"Rank {rank}: {short_title}",
+                            value=st.session_state.clip_selections.get(i, True),
+                            key=f"clip_select_{i}"
+                        )
+                        st.session_state.clip_selections[i] = selected
+                        st.video(str(clip_path), width=450)
+                        duration = clip.get('duration', 'N/A')
+                        engagement = clip.get('engagement_level', 'N/A')
+                        st.caption(f"**{title}** | Duration: {duration} | Engagement: {engagement}")
+
+        # Count selected clips
+        selected_count = sum(1 for v in st.session_state.clip_selections.values() if v)
+        total_count = len(clips_info)
+
+        # Action buttons
+        btn_col1, btn_col2, btn_col3 = st.columns([2, 2, 2])
+
+        with btn_col1:
+            continue_label = t['continue_with_clips'].format(count=selected_count, total=total_count)
+            continue_clicked = st.button(
+                continue_label,
+                disabled=(selected_count == 0),
+                type="primary"
+            )
+
+        with btn_col2:
+            skip_clicked = st.button(t['skip_titles_covers'])
+
+        with btn_col3:
+            toggle_clicked = st.button(t['select_deselect_all'])
+
+        if toggle_clicked:
+            all_selected = all(st.session_state.clip_selections.values())
+            for k in st.session_state.clip_selections:
+                st.session_state.clip_selections[k] = not all_selected
+            st.rerun()
+
+        if selected_count == 0:
+            st.warning(t['no_clips_selected'])
+
+        if skip_clicked:
+            # Finalize with Phase 1 results only (no titles/covers)
+            _finalize_results(phase1_result)
+            st.session_state.clip_preview_mode = False
+            st.session_state.phase1_result = None
+            st.session_state.phase1_params = None
+            st.session_state.clip_selections = {}
+            st.rerun()
+
+        if continue_clicked and selected_count > 0:
+            # Collect selected ranks and launch Phase 2
+            selected_indices = [
+                i for i, sel in st.session_state.clip_selections.items() if sel
+            ]
+            selected_ranks = [clips_info[i]['rank'] for i in selected_indices]
+
+            p1_params = st.session_state.phase1_params
+            engaging_result = phase1_result.engaging_moments_analysis
+
+            st.session_state.phase2_processing = True
+            st.session_state.phase2_outcome = {'result': None, 'error': None}
+            st.session_state.phase2_progress = {'status': '', 'progress': 0}
+
+            _p2_progress = st.session_state.phase2_progress
+            _p2_outcome = st.session_state.phase2_outcome
+            _cancel_event = st.session_state.cancel_event
+
+            def _phase2_progress_cb(status, progress):
+                if _cancel_event.is_set():
+                    raise Exception("Processing cancelled by user")
+                clean = re.sub(r'\x1b\[[0-9;]*m', '', status)
+                _p2_progress['status'] = f"🔄 {clean} ({progress:.1f}%)"
+                _p2_progress['progress'] = progress
+
+            _p2_selected_ranks = selected_ranks
+            _p2_phase1_result = phase1_result
+            _p2_engaging_result = engaging_result
+            _p2_params = p1_params
+
+            def _run_phase2():
+                try:
+                    orchestrator = VideoOrchestrator(
+                        output_dir=_p2_params['output_dir'],
+                        add_titles=_p2_params['add_titles'],
+                        title_style=_p2_params['title_style'],
+                        generate_cover=_p2_params['generate_cover'],
+                        api_key=_p2_params['api_key'],
+                        llm_provider=_p2_params['llm_provider'],
+                        language=_p2_params['language'],
+                        use_background=_p2_params['use_background'],
+                        max_clips=_p2_params['max_clips'],
+                        generate_clips=False,
+                        skip_analysis=True,
+                    )
+                    result = orchestrator.process_titles_and_covers(
+                        _p2_phase1_result,
+                        _p2_engaging_result,
+                        _p2_selected_ranks,
+                        progress_callback=_phase2_progress_cb,
+                    )
+                    _p2_outcome['result'] = result
+                except Exception as e:
+                    _p2_outcome['error'] = e
+
+            thread = threading.Thread(target=_run_phase2, daemon=True)
+            st.session_state.phase2_thread = thread
+            thread.start()
+            st.rerun()
+
+# --- Phase 2 polling loop ---
+if st.session_state.phase2_processing:
+    p2_ps = st.session_state.phase2_progress
+    progress_bar.progress(min(int(p2_ps['progress']), 100))
+    if p2_ps['status']:
+        status_text.text(p2_ps['status'])
+        if "Adding titles" in p2_ps['status']:
+            st.info(t['phase2_adding_titles_notice'])
+
+    thread = st.session_state.phase2_thread
+    if thread is not None and thread.is_alive():
+        time.sleep(0.5)
+        st.rerun()
+    else:
+        # Phase 2 finished
+        st.session_state.phase2_processing = False
+        p2_outcome = st.session_state.phase2_outcome
+
+        if p2_outcome.get('error'):
+            st.error(f"❌ Error: {p2_outcome['error']}")
+        elif p2_outcome.get('result'):
+            merged_result = p2_outcome['result']
+            _finalize_results(merged_result)
+            st.header("📊 Results")
+            display_results(merged_result)
+            just_processed = True
+
+        # Clean up preview state
+        st.session_state.clip_preview_mode = False
+        st.session_state.phase1_result = None
+        st.session_state.phase1_params = None
+        st.session_state.clip_selections = {}
+        st.session_state.phase2_outcome = {'result': None, 'error': None}
+        st.session_state.phase2_progress = {'status': '', 'progress': 0}
 
 # Display saved results if they exist and we didn't just process a video
 if data['processing_result'] and not just_processed:

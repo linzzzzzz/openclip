@@ -10,7 +10,7 @@ import argparse
 import logging
 import re
 from pathlib import Path
-from typing import Optional, Callable, Dict, Any, Tuple
+from typing import Optional, Callable, Dict, Any, Tuple, List
 from datetime import datetime
 import os
 import shutil
@@ -657,7 +657,103 @@ class VideoOrchestrator:
                 'total_parts_analyzed': 0
             }
     
-    def _generate_cover_image(self, result: ProcessingResult, engaging_result: Dict[str, Any], 
+    def process_titles_and_covers(
+        self,
+        phase1_result: ProcessingResult,
+        engaging_result: Dict[str, Any],
+        selected_ranks: List[int],
+        progress_callback: Optional[Callable[[str, float], None]] = None,
+    ) -> ProcessingResult:
+        """
+        Phase 2: Add titles and generate covers for selected clips only.
+
+        Args:
+            phase1_result: The ProcessingResult from Phase 1 (steps 1-5)
+            engaging_result: The engaging_moments_analysis dict from Phase 1
+            selected_ranks: List of rank numbers the user wants to keep
+            progress_callback: Progress callback function
+
+        Returns:
+            Updated ProcessingResult with title_addition and cover_generation set
+        """
+        import json
+
+        result = phase1_result
+
+        try:
+            if progress_callback:
+                progress_callback("Preparing selected clips...", 0)
+
+            # Derive directory paths from phase1_result
+            video_name = result.video_info.get('title', 'video')
+            safe_video_name = re.sub(r'[^\w\s-]', '', video_name)
+            safe_video_name = re.sub(r'[\s\-]+', '_', safe_video_name)
+            safe_video_name = re.sub(r'_+', '_', safe_video_name).strip('_')
+            video_root_dir = self.output_dir / safe_video_name
+
+            video_clips_dir = video_root_dir / "clips"
+            video_clips_with_titles_dir = video_root_dir / "clips_with_titles"
+            video_clips_with_titles_dir.mkdir(parents=True, exist_ok=True)
+
+            # Filter analysis file to only include selected ranks
+            with open(engaging_result['aggregated_file'], 'r', encoding='utf-8') as f:
+                analysis_data = json.load(f)
+
+            analysis_data['top_engaging_moments'] = [
+                m for m in analysis_data['top_engaging_moments']
+                if m['rank'] in selected_ranks
+            ]
+
+            filtered_file = video_root_dir / "selected_engaging_moments.json"
+            with open(str(filtered_file), 'w', encoding='utf-8') as f:
+                json.dump(analysis_data, f, ensure_ascii=False, indent=2)
+
+            logger.info(f"📋 Phase 2: Processing {len(selected_ranks)} selected clips")
+
+            # Step 6: Add artistic titles (if enabled)
+            if self.title_adder:
+                logger.info("🎨 Phase 2 - Adding artistic titles to selected clips...")
+                if progress_callback:
+                    progress_callback("Adding titles to selected clips...", 10)
+
+                def title_progress_wrapper(status: str, title_progress: float):
+                    if progress_callback:
+                        overall = 10 + (title_progress * 0.6)  # Map 0-100 to 10-70
+                        progress_callback(status, overall)
+
+                self.title_adder.output_dir = video_clips_with_titles_dir
+                title_result = self.title_adder.add_titles_to_clips(
+                    str(video_clips_dir),
+                    str(filtered_file),
+                    self.title_style,
+                    self.title_font_size,
+                    progress_callback=title_progress_wrapper
+                )
+                result.title_addition = title_result
+
+            # Step 7: Generate cover images (if enabled)
+            if self.cover_generator:
+                logger.info("🖼️  Phase 2 - Generating cover images for selected clips...")
+                if progress_callback:
+                    progress_callback("Generating cover images...", 75)
+
+                filtered_engaging = {**engaging_result, 'aggregated_file': str(filtered_file)}
+                cover_result = self._generate_cover_image(
+                    result, filtered_engaging, video_clips_dir, video_clips_dir
+                )
+                result.cover_generation = cover_result
+
+            if progress_callback:
+                progress_callback("Phase 2 completed!", 100)
+
+        except Exception as e:
+            logger.error(f"Phase 2 failed: {e}")
+            if progress_callback:
+                progress_callback(f"Phase 2 failed: {e}", 0)
+
+        return result
+
+    def _generate_cover_image(self, result: ProcessingResult, engaging_result: Dict[str, Any],
                              clips_dir: Path, covers_output_dir: Path) -> Dict[str, Any]:
         """
         Generate cover images for each engaging moment with styled text overlay

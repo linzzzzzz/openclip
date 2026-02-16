@@ -20,6 +20,10 @@
 
 <video src="https://github.com/user-attachments/assets/1ddf8318-f6ad-418c-9c4c-bbac0dedc668" controls width="600" height="450"></video>
 
+## 📢 最新动态
+
+- **2025-02-16**: 新增剪辑预览与筛选功能 — 在生成标题和封面之前，可以先预览所有剪辑片段，取消不需要的片段后再继续处理。
+
 ## ✨ 特性
 - **灵活输入**：支持 Bilibili、YouTube URL 或本地视频文件
 - **智能转录**：优先使用平台字幕，回退到 Whisper

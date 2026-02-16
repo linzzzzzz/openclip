@@ -20,6 +20,10 @@ Give it a video URL or local file, and it handles the full pipeline: **Download 
 
 <video src="https://github.com/user-attachments/assets/212855d0-336c-4708-8c43-c57f3e5eecd1" controls width="600" height="450"></video>
 
+## 📢 News
+
+- **2025-02-16**: Added clip preview and selection — preview all generated clips before title/cover generation, deselect unwanted clips, and only process the ones you keep.
+
 ## ✨ Features
 - **Flexible Input**: Bilibili/YouTube URLs or local video files
 - **Smart Transcription**: Uses platform subtitles when available, falls back to Whisper
