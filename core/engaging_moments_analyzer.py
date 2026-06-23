@@ -83,11 +83,14 @@ class EngagingMomentsAnalyzer:
         elif self.provider == "minimax":
             from core.llm.minimax_api_client import MiniMaxAPIClient
             self.llm_client = MiniMaxAPIClient(api_key, base_url=self.base_url)
+        elif self.provider == "atlas":
+            from core.llm.atlas_api_client import AtlasAPIClient
+            self.llm_client = AtlasAPIClient(api_key, base_url=self.base_url)
         elif self.provider == "custom_openai":
             from core.llm.custom_openai_api_client import CustomOpenAIAPIClient
             self.llm_client = CustomOpenAIAPIClient(api_key, base_url=self.base_url)
         else:
-            raise ValueError(f"Unsupported provider: {provider}. Supported providers are 'qwen', 'openrouter', 'glm', 'minimax', and 'custom_openai'.")
+            raise ValueError(f"Unsupported provider: {provider}. Supported providers are 'qwen', 'openrouter', 'glm', 'minimax', 'atlas', and 'custom_openai'.")
         
         # Load background information if enabled
         if self.use_background:

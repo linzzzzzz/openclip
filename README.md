@@ -7,6 +7,44 @@
 
 [English](./README_EN.md) | 简体中文
 
+---
+
+<p align="center">
+  <a href="https://www.atlascloud.ai/?utm_source=github&utm_medium=link&utm_campaign=openclip">
+    <img src="./assets/atlas-cloud-logo.png" alt="Atlas Cloud" width="200">
+  </a>
+</p>
+
+> 🎁 **[Atlas Cloud](https://www.atlascloud.ai/?utm_source=github&utm_medium=link&utm_campaign=openclip)** 为 OpenClip 的精彩片段分析提供了开箱即用的 LLM 后端——通过一个 OpenAI 兼容 API 即可调用 DeepSeek、Qwen、GLM、Kimi、MiniMax 等模型，无需逐家对接多个厂商。把 `LLM Provider` 选成 `atlas` 即可使用。预算友好：[coding plan](https://www.atlascloud.ai/console/coding-plan)。
+
+```bash
+export ATLAS_API_KEY=your_atlascloud_api_key   # Atlas Cloud
+# 可选覆盖（已有默认值）：
+# export ATLAS_BASE_URL=https://api.atlascloud.ai/v1
+# export ATLAS_MODEL=deepseek-ai/deepseek-v4-pro
+```
+
+`deepseek-ai/deepseek-v4-pro` 是带思维链的推理模型，请给足 `max_tokens`（≥ 512），否则 token 可能先耗在推理上，导致返回内容为空。
+
+<details>
+<summary>Atlas Cloud 全部对话模型（59 个，来源 <code>/zh/models/list/llm</code>）</summary>
+
+- Anthropic (Claude)：`anthropic/claude-haiku-4.5-20251001`、`anthropic/claude-opus-4.8`、`anthropic/claude-sonnet-4.6`
+- OpenAI (GPT)：`openai/gpt-5.4`、`openai/gpt-5.5`
+- Google (Gemini)：`google/gemini-3.1-flash-lite`、`google/gemini-3.1-pro-preview`、`google/gemini-3.5-flash`
+- 阿里 Qwen：`qwen/qwen2.5-7b-instruct`、`Qwen/Qwen3-235B-A22B-Instruct-2507`、`qwen/qwen3-235b-a22b-thinking-2507`、`qwen/qwen3-30b-a3b`、`Qwen/Qwen3-30B-A3B-Instruct-2507`、`qwen/qwen3-30b-a3b-thinking-2507`、`qwen/qwen3-32b`、`qwen/qwen3-8b`、`Qwen/Qwen3-Coder`、`qwen/qwen3-coder-next`、`qwen/qwen3-max-2026-01-23`、`Qwen/Qwen3-Next-80B-A3B-Instruct`、`Qwen/Qwen3-Next-80B-A3B-Thinking`、`Qwen/Qwen3-VL-235B-A22B-Instruct`、`qwen/qwen3-vl-235b-a22b-thinking`、`qwen/qwen3-vl-30b-a3b-instruct`、`qwen/qwen3-vl-30b-a3b-thinking`、`qwen/qwen3-vl-8b-instruct`、`qwen/qwen3.5-122b-a10b`、`qwen/qwen3.5-27b`、`qwen/qwen3.5-35b-a3b`、`qwen/qwen3.5-397b-a17b`、`qwen/qwen3.6-35b-a3b`、`qwen/qwen3.6-plus`
+- DeepSeek：`deepseek-ai/deepseek-ocr`、`deepseek-ai/deepseek-r1-0528`、`deepseek-ai/DeepSeek-V3-0324`、`deepseek-ai/DeepSeek-V3.1`、`deepseek-ai/DeepSeek-V3.1-Terminus`、`deepseek-ai/deepseek-v3.2`、`deepseek-ai/DeepSeek-V3.2-Exp`、`deepseek-ai/deepseek-v4-flash`、`deepseek-ai/deepseek-v4-pro`
+- Moonshot (Kimi)：`moonshotai/Kimi-K2-Instruct`、`moonshotai/Kimi-K2-Instruct-0905`、`moonshotai/Kimi-K2-Thinking`、`moonshotai/kimi-k2.5`、`moonshotai/kimi-k2.6`
+- 智谱 GLM：`zai-org/GLM-4.6`、`zai-org/glm-4.7`、`zai-org/glm-5`、`zai-org/glm-5-turbo`、`zai-org/glm-5.1`、`zai-org/glm-5v-turbo`
+- MiniMax：`MiniMaxAI/MiniMax-M2`、`minimaxai/minimax-m2.1`、`minimaxai/minimax-m2.5`、`minimaxai/minimax-m2.7`
+- xAI：`xai/grok-4.3`
+- 快手 KAT：`kwaipilot/kat-coder-pro-v2`
+- 其他：`owl`
+
+</details>
+
+---
+
 一个轻量化自动化视频处理流水线，用于识别和提取长视频（特别是口播和直播回放）中最精彩的片段。使用 AI 驱动的分析来发现亮点，生成剪辑，并添加标题和封面。
 
 ## 🎯 功能介绍
@@ -165,6 +203,7 @@ export QWEN_API_KEY=your_api_key_here        # 通义千问
 export OPENROUTER_API_KEY=your_api_key_here   # OpenRouter
 export GLM_API_KEY=your_api_key_here          # 智谱AI GLM (bigmodel.cn 国内端点)
 export MINIMAX_API_KEY=your_api_key_here      # MiniMax (minimaxi.com 国内端点)
+export ATLAS_API_KEY=your_api_key_here        # Atlas Cloud (api.atlascloud.ai，OpenAI 兼容)
 export CUSTOM_OPENAI_API_KEY=your_api_key_here # custom_openai，可选
 export CUSTOM_OPENAI_BASE_URL=http://127.0.0.1:8000/v1
 export CUSTOM_OPENAI_MODEL=Qwen/Qwen2.5-7B-Instruct
@@ -401,7 +440,7 @@ uv run python video_orchestrator.py \
 |------|------|--------|
 | `VIDEO_URL_OR_PATH` | 视频 URL 或本地文件路径（位置参数） | 必填 |
 | `-o`, `--output` | 自定义输出目录 | `processed_videos` |
-| `--llm-provider` | LLM 提供商（`qwen`、`openrouter`、`glm`、`minimax` 或 `custom_openai`） | `qwen` |
+| `--llm-provider` | LLM 提供商（`qwen`、`openrouter`、`glm`、`minimax`、`atlas` 或 `custom_openai`） | `qwen` |
 | `--llm-model` | 覆盖当前提供商使用的模型名；对 `custom_openai` 通常需要显式配置 | 提供商默认值 |
 | `--llm-base-url` | 覆盖当前提供商使用的 OpenAI 兼容 chat completions 地址；对 `custom_openai` 通常需要显式配置 | 提供商默认值 |
 | `--language` | 输出语言（`zh` 或 `en`） | `zh` |

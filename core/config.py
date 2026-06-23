@@ -50,6 +50,7 @@ SUPPORTED_LLM_PROVIDERS = (
     "openrouter",
     "glm",
     "minimax",
+    "atlas",
     "custom_openai",
 )
 
@@ -101,6 +102,20 @@ LLM_CONFIG: Dict[str, Dict[str, Any]] = {
             "stream": False
         }
     },
+    "atlas": {
+        # Atlas Cloud — single OpenAI-compatible API for LLM / image / video.
+        # https://www.atlascloud.ai
+        "base_url": _env_llm_base_url("atlas", "https://api.atlascloud.ai/v1/chat/completions"),
+        # deepseek-v4-pro is a reasoning model; keep max_tokens high so the
+        # answer is not exhausted by the chain-of-thought (reasoning_content).
+        "default_model": _env_llm_model("atlas", "deepseek-ai/deepseek-v4-pro"),
+        "default_params": {
+            "max_tokens": 32768,
+            "temperature": 0.7,
+            "top_p": 0.8,
+            "stream": False
+        }
+    },
     "custom_openai": {
         "base_url": _env_llm_base_url("custom_openai", "https://api.openai.com/v1/chat/completions"),
         "default_model": _env_llm_model("custom_openai", ""),
@@ -120,6 +135,7 @@ API_KEY_ENV_VARS: Dict[str, str] = {
     "openrouter": "OPENROUTER_API_KEY",
     "glm": "GLM_API_KEY",
     "minimax": "MINIMAX_API_KEY",
+    "atlas": "ATLAS_API_KEY",
     "custom_openai": "CUSTOM_OPENAI_API_KEY",
 }
 
