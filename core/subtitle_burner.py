@@ -212,6 +212,9 @@ class SubtitleBurner:
             if provider == "openrouter":
                 from core.llm.openrouter_api_client import OpenRouterAPIClient
                 self.client = OpenRouterAPIClient(api_key=api_key, base_url=base_url)
+            elif provider == "atlascloud":
+                from core.llm.atlascloud_api_client import AtlasCloudAPIClient
+                self.client = AtlasCloudAPIClient(api_key=api_key, base_url=base_url)
             elif provider == "glm":
                 from core.llm.glm_api_client import GLMAPIClient
                 self.client = GLMAPIClient(api_key=api_key, base_url=base_url)

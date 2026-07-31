@@ -53,6 +53,9 @@ class InsightsAnalyzer:
         elif self.provider == "openrouter":
             from core.llm.openrouter_api_client import OpenRouterAPIClient
             self.llm_client = OpenRouterAPIClient(api_key, base_url=self.base_url)
+        elif self.provider == "atlascloud":
+            from core.llm.atlascloud_api_client import AtlasCloudAPIClient
+            self.llm_client = AtlasCloudAPIClient(api_key, base_url=self.base_url)
         elif self.provider == "glm":
             from core.llm.glm_api_client import GLMAPIClient
             self.llm_client = GLMAPIClient(api_key, base_url=self.base_url)
@@ -64,7 +67,7 @@ class InsightsAnalyzer:
             self.llm_client = CustomOpenAIAPIClient(api_key, base_url=self.base_url)
         else:
             raise ValueError(
-                f"Unsupported provider: {provider}. Supported: 'qwen', 'openrouter', 'glm', 'minimax', 'custom_openai'."
+                f"Unsupported provider: {provider}. Supported: {', '.join(LLM_CONFIG)}."
             )
 
         if self.use_background:
