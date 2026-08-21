@@ -59,7 +59,7 @@ class CustomOpenAIAPIClient:
                     self.base_url,
                     headers=headers,
                     json=payload,
-                    timeout=240,
+                    timeout=float(os.getenv("CUSTOM_OPENAI_TIMEOUT", "240")),
                 )
                 response.raise_for_status()
                 return response.json()
