@@ -118,7 +118,9 @@ def _preferred_font_paths(language: str, prefer_bold: bool) -> List[str]:
 
     if prefer_bold:
         _append_unique(paths, "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
+        _append_unique(paths, "C:/Windows/Fonts/arialbd.ttf", "C:/Windows/Fonts/calibrib.ttf", "C:/Windows/Fonts/segoeuib.ttf", "C:/Windows/Fonts/DejaVuSans-Bold.ttf")
     _append_unique(paths, "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
+    _append_unique(paths, "C:/Windows/Fonts/arial.ttf", "C:/Windows/Fonts/calibri.ttf", "C:/Windows/Fonts/segoeui.ttf", "C:/Windows/Fonts/DejaVuSans.ttf")
     return paths
 
 
