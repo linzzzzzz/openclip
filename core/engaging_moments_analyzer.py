@@ -43,7 +43,7 @@ class EngagingMomentsAnalyzer:
 
         Args:
             api_key: API key for the selected provider (optional, can use env var)
-            provider: LLM provider to use ("qwen", "openrouter", "glm", "minimax", or "custom_openai")
+            provider: LLM provider to use
             use_background: Whether to include background information in prompts
             language: Language for output ("zh" for Chinese, "en" for English)
             debug: Enable debug mode to export full prompts sent to LLM
@@ -77,6 +77,9 @@ class EngagingMomentsAnalyzer:
         elif self.provider == "openrouter":
             from core.llm.openrouter_api_client import OpenRouterAPIClient
             self.llm_client = OpenRouterAPIClient(api_key, base_url=self.base_url)
+        elif self.provider == "atlascloud":
+            from core.llm.atlascloud_api_client import AtlasCloudAPIClient
+            self.llm_client = AtlasCloudAPIClient(api_key, base_url=self.base_url)
         elif self.provider == "glm":
             from core.llm.glm_api_client import GLMAPIClient
             self.llm_client = GLMAPIClient(api_key, base_url=self.base_url)
@@ -87,7 +90,7 @@ class EngagingMomentsAnalyzer:
             from core.llm.custom_openai_api_client import CustomOpenAIAPIClient
             self.llm_client = CustomOpenAIAPIClient(api_key, base_url=self.base_url)
         else:
-            raise ValueError(f"Unsupported provider: {provider}. Supported providers are 'qwen', 'openrouter', 'glm', 'minimax', and 'custom_openai'.")
+            raise ValueError(f"Unsupported provider: {provider}. Supported providers: {', '.join(LLM_CONFIG)}.")
         
         # Load background information if enabled
         if self.use_background:

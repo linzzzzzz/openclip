@@ -48,6 +48,7 @@ def _env_float(name: str, default: float) -> float:
 SUPPORTED_LLM_PROVIDERS = (
     "qwen",
     "openrouter",
+    "atlascloud",
     "glm",
     "minimax",
     "custom_openai",
@@ -76,6 +77,16 @@ LLM_CONFIG: Dict[str, Dict[str, Any]] = {
         "default_model": _env_llm_model("openrouter", "stepfun/step-3.5-flash:free"),
         "default_params": {
             "max_tokens": 32768,
+            "temperature": 0.7,
+            "top_p": 0.8,
+            "stream": False
+        }
+    },
+    "atlascloud": {
+        "base_url": _env_llm_base_url("atlascloud", "https://api.atlascloud.ai/v1/chat/completions"),
+        "default_model": _env_llm_model("atlascloud", "deepseek-ai/deepseek-v4-pro"),
+        "default_params": {
+            "max_tokens": 8192,
             "temperature": 0.7,
             "top_p": 0.8,
             "stream": False
@@ -118,6 +129,7 @@ LLM_CONFIG: Dict[str, Dict[str, Any]] = {
 API_KEY_ENV_VARS: Dict[str, str] = {
     "qwen": "QWEN_API_KEY",
     "openrouter": "OPENROUTER_API_KEY",
+    "atlascloud": "ATLASCLOUD_API_KEY",
     "glm": "GLM_API_KEY",
     "minimax": "MINIMAX_API_KEY",
     "custom_openai": "CUSTOM_OPENAI_API_KEY",
