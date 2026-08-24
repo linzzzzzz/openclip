@@ -175,6 +175,7 @@ Notes:
 - `custom_openai` is useful for LM Studio, vLLM, One API, New API, or any other OpenAI-compatible service
 - `CUSTOM_OPENAI_BASE_URL` can be either an API root such as `.../v1` or a full `/chat/completions` endpoint
 - Leave `CUSTOM_OPENAI_API_KEY` empty if your compatible endpoint does not require Bearer authentication
+- `CUSTOM_OPENAI_MAX_TOKENS` (default `8192`) and `CUSTOM_OPENAI_TIMEOUT` (default `240`, seconds) can be raised for slower local/self-hosted models (e.g. Ollama, LM Studio) whose thinking/reasoning output can exceed the cloud-oriented defaults
 - The Streamlit sidebar lets you override `LLM Model` and `LLM Base URL` per provider; the CLI equivalents are `--llm-model` and `--llm-base-url`
 
 ### 3. Run the Pipeline

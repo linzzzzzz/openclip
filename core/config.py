@@ -105,7 +105,7 @@ LLM_CONFIG: Dict[str, Dict[str, Any]] = {
         "base_url": _env_llm_base_url("custom_openai", "https://api.openai.com/v1/chat/completions"),
         "default_model": _env_llm_model("custom_openai", ""),
         "default_params": {
-            "max_tokens": 8192,
+            "max_tokens": _env_int("CUSTOM_OPENAI_MAX_TOKENS", 8192),
             "temperature": 0.7,
             "top_p": 0.8,
             "stream": False
